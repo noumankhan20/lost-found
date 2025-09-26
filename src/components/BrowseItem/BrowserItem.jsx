@@ -28,7 +28,7 @@ const LostAndFoundPage = () => {
             date: "2025-02-21",
             time: "14:30",
             description: "A man with  a button on his head",
-            image: "/lost.jpg",
+            image: "/lost.webp",
             status: "lost",
             reportedBy: "Alex Johnson"
           },
@@ -52,7 +52,7 @@ const LostAndFoundPage = () => {
             date: "2025-09-21",
             time: "18:45",
             description: "32oz navy blue water bottle with stickers",
-            image: "",
+            image: "/bottle.webp",
             status: "lost",
             reportedBy: "James Wilson"
           },
