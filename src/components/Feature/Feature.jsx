@@ -26,7 +26,7 @@
         <section className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-6 text-center">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            How lost $ Found Works
+            How FindIT Works
             </h2>
             <p className="text-lg text-gray-600 mb-12 max-w-2xl mx-auto">
             We connect people who have lost items with those who have found them — fast and safely.

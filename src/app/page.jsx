@@ -15,8 +15,8 @@
 //     </main>
 //   );
 
-import Navigation from "@/components/Navbar/Navbar";
-import Footer from "@/components/Footer/Footer";
+import Navigation from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/HeroSection/HeroSection";
 import FeaturesSection from "@/components/Feature/Feature";
 import TestimonialsSection from "@/components/Testimonals/Testimonals";
@@ -24,12 +24,10 @@ import FAQSection from "@/components/Faq/Faq";
 export default function Home() {
   return (
     <div>
-      <Navigation/>
       <HeroSection/>
       <FeaturesSection/>
       <TestimonialsSection/>
       <FAQSection/>
-      <Footer/>
     </div>
   )
 }

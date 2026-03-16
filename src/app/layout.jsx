@@ -1,8 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
-
-import { Metadata } from "next";
 import './globals.css';
-
+import Navigation from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,9 +13,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Optional: Add static metadata
 export const metadata = {
-  title: "lost $ Found",
+  title: "FindIT — Lost & Found Management System",
   description: "Reuniting people with their lost items.",
 };
 
@@ -24,7 +22,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+        <Navigation />
+        <main>{children}</main>
+        <Footer />
       </body>
     </html>
   );

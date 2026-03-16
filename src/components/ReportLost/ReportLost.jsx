@@ -1,336 +1,229 @@
 "use client"
 import React, { useState } from 'react';
-import { Upload, MapPin, Calendar, Camera, Phone, Mail, AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { Upload, MapPin, Calendar, Camera, CheckCircle2, X, Tag, FileText, ChevronRight } from 'lucide-react';
 
 export default function ReportLostItem() {
   const [formData, setFormData] = useState({
     itemName: '',
-    category: '',
     description: '',
     location: '',
     dateTime: '',
-    contactName: '',
-    email: '',
-    phone: '',
-    reward: '',
     images: []
   });
-
   const [dragActive, setDragActive] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const categories = [
-    'Electronics', 'Jewelry', 'Keys', 'Wallet/Purse', 'Clothing', 
-    'Documents', 'Pet', 'Sports Equipment', 'Bag/Backpack', 'Other'
-  ];
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    setDragActive(e.type === "dragenter" || e.type === "dragover");
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
+    if (e.dataTransfer.files?.[0]) handleFiles(e.dataTransfer.files);
   };
 
   const handleFiles = (files) => {
-    const newImages = Array.from(files).slice(0, 3 - formData.images.length);
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...newImages.map(file => ({
-        file,
-        url: URL.createObjectURL(file),
-        name: file.name
-      }))]
+    const slots = 3 - formData.images.length;
+    const newImages = Array.from(files).slice(0, slots).map(file => ({
+      file, url: URL.createObjectURL(file), name: file.name
     }));
+    setFormData(prev => ({ ...prev, images: [...prev.images, ...newImages] }));
   };
 
   const removeImage = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
+    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate form submission
     setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
   };
 
+  // ── SUCCESS ──
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 text-center max-w-md mx-auto">
-          <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
-          <h3 className="text-2xl font-bold text-white mb-4">Report Submitted!</h3>
-          <p className="text-white/80 mb-6">
+      <div className="min-h-screen bg-gradient-to-b from-red-900 via-gray-900 to-black flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md bg-white/[0.07] border border-white/[0.12] rounded-2xl p-10 text-center">
+          <div className="w-16 h-16 rounded-full bg-green-500/15 border border-green-500/25 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-8 h-8 text-green-400" strokeWidth={1.5} />
+          </div>
+          <h3 className="text-[22px] font-bold text-white mb-3">Report Submitted!</h3>
+          <p className="text-white/55 text-[14px] leading-relaxed mb-8">
             Your lost item report has been posted. You'll receive notifications when potential matches are found.
           </p>
-          <button 
-            onClick={() => setSubmitted(false)}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-600 text-white rounded-xl hover:from-purple-700 hover:to-cyan-700 transition-all duration-300"
+          <button
+            onClick={() => { setSubmitted(false); setFormData({ itemName: '', description: '', location: '', dateTime: '', images: [] }); }}
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[14px] font-semibold transition-colors duration-150"
           >
             Report Another Item
+            <ChevronRight size={15} />
           </button>
         </div>
       </div>
     );
   }
 
+  // ── FORM ──
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-900 via-gray-900 to-black-900 py-20">
-         
-      {/* Background effects */}
-  
-      <div className="relative max-w-4xl mx-auto px-6">
+    <div className="min-h-screen bg-gradient-to-b from-red-900 via-gray-900 to-black py-16 px-4">
+      <div className="max-w-2xl mx-auto">
+
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+        <div className="text-center mb-10">
+          <h1 className="text-[clamp(28px,5vw,44px)] font-black text-white tracking-tight leading-tight mb-3">
             Report Lost Item
           </h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Provide as much detail as possible to help others identify and return your item
+          <p className="text-[15px] text-white/50 max-w-md mx-auto leading-relaxed">
+            Provide as much detail as possible to help others identify and return your item.
           </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Item Details */}
-            <div className="space-y-6">
-              <div>
-                <label className="block text-white font-semibold mb-2">Item Name *</label>
-                <input
-                  type="text"
-                  name="itemName"
-                  value={formData.itemName}
-                  onChange={handleInputChange}
-                  placeholder="e.g., iPhone 15, Gold Wedding Ring"
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                  required
-                />
-              </div>
+        {/* Form card */}
+        <div className="bg-white/[0.06] border border-white/[0.1] rounded-2xl p-6 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
 
-              <div>
-                <label className="block text-white font-semibold mb-2">Category *</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                  required
-                >
-                  <option value="" className="bg-slate-800">Select a category</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat} className="bg-slate-800">{cat}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Item Name */}
+            <div>
+              <label className="flex items-center gap-1.5 text-[11px] font-semibold text-white/50 uppercase tracking-[0.1em] mb-2">
+                <Tag size={11} strokeWidth={2.5} />
+                Item Name
+              </label>
+              <input
+                type="text" name="itemName" required
+                value={formData.itemName} onChange={handleInputChange}
+                placeholder="e.g. iPhone 15, Gold Wedding Ring"
+                className="w-full bg-white/[0.06] border border-white/[0.1] hover:border-white/[0.18] focus:border-white/30 focus:ring-4 focus:ring-white/[0.05] rounded-xl px-4 py-3 text-[14px] text-white placeholder-white/25 outline-none transition-all duration-200"
+              />
+            </div>
 
-              <div>
-                <label className="block text-white font-semibold mb-2">Description *</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Describe the item in detail - color, size, brand, unique features, etc."
-                  rows={4}
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 resize-none"
-                  required
-                />
+            {/* Description */}
+            <div>
+              <label className="flex items-center gap-1.5 text-[11px] font-semibold text-white/50 uppercase tracking-[0.1em] mb-2">
+                <FileText size={11} strokeWidth={2.5} />
+                Description
+                <span className="ml-auto text-[10px] text-white/25 normal-case tracking-normal font-normal">Color, brand, unique features</span>
+              </label>
+              <textarea
+                name="description" required rows={4}
+                value={formData.description} onChange={handleInputChange}
+                placeholder="Describe color, size, brand, any unique marks or features..."
+                className="w-full bg-white/[0.06] border border-white/[0.1] hover:border-white/[0.18] focus:border-white/30 focus:ring-4 focus:ring-white/[0.05] rounded-xl px-4 py-3 text-[14px] text-white placeholder-white/25 outline-none transition-all duration-200 resize-none leading-relaxed"
+              />
+              <div className="flex justify-end mt-1.5">
+                <span className="text-[10.5px] text-white/20">{formData.description.length} / 500</span>
               </div>
+            </div>
 
+            {/* Location + Date row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-white font-semibold mb-2 flex items-center gap-2">
-                  <MapPin size={18} />
-                  Last Known Location *
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold text-white/50 uppercase tracking-[0.1em] mb-2">
+                  <MapPin size={11} strokeWidth={2.5} />
+                  Last Known Location
                 </label>
                 <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="Where did you last see your item?"
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                  required
+                  type="text" name="location" required
+                  value={formData.location} onChange={handleInputChange}
+                  placeholder="e.g. Main Library, Block B"
+                  className="w-full bg-white/[0.06] border border-white/[0.1] hover:border-white/[0.18] focus:border-white/30 focus:ring-4 focus:ring-white/[0.05] rounded-xl px-4 py-3 text-[14px] text-white placeholder-white/25 outline-none transition-all duration-200"
                 />
               </div>
 
               <div>
-                <label className="block text-white font-semibold mb-2 flex items-center gap-2">
-                  <Calendar size={18} />
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold text-white/50 uppercase tracking-[0.1em] mb-2">
+                  <Calendar size={11} strokeWidth={2.5} />
                   Date & Time Lost
                 </label>
                 <input
-                  type="datetime-local"
-                  name="dateTime"
-                  value={formData.dateTime}
-                  onChange={handleInputChange}
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                  type="datetime-local" name="dateTime"
+                  value={formData.dateTime} onChange={handleInputChange}
+                  style={{ colorScheme: 'dark' }}
+                  className="w-full bg-white/[0.06] border border-white/[0.1] hover:border-white/[0.18] focus:border-white/30 focus:ring-4 focus:ring-white/[0.05] rounded-xl px-4 py-3 text-[14px] text-white/70 outline-none transition-all duration-200"
                 />
               </div>
             </div>
 
-            {/* Contact & Images */}
-            <div className="space-y-6">
-              <div>
-                <label className="block text-white font-semibold mb-2">Your Name *</label>
-                <input
-                  type="text"
-                  name="contactName"
-                  value={formData.contactName}
-                  onChange={handleInputChange}
-                  placeholder="Full name"
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                  required
-                />
-              </div>
+            {/* Photo Upload */}
+            <div>
+              <label className="flex items-center gap-1.5 text-[11px] font-semibold text-white/50 uppercase tracking-[0.1em] mb-2">
+                <Camera size={11} strokeWidth={2.5} />
+                Photos
+                <span className="ml-auto text-[10px] text-white/25 normal-case tracking-normal font-normal">Optional · up to 3</span>
+              </label>
 
-              <div>
-                <label className="block text-white font-semibold mb-2 flex items-center gap-2">
-                  <Mail size={18} />
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="your@email.com"
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-white font-semibold mb-2 flex items-center gap-2">
-                  <Phone size={18} />
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="(555) 123-4567"
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-white font-semibold mb-2">Reward (Optional)</label>
-                <input
-                  type="text"
-                  name="reward"
-                  value={formData.reward}
-                  onChange={handleInputChange}
-                  placeholder="e.g., $50 reward"
-                  className="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                />
-              </div>
-
-              {/* Image Upload */}
-              <div>
-                <label className="block text-white font-semibold mb-2 flex items-center gap-2">
-                  <Camera size={18} />
-                  Photos (Up to 3)
-                </label>
-                <div
-                  className={`border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 ${
-                    dragActive 
-                      ? 'border-purple-400 bg-purple-500/20' 
-                      : 'border-white/30 hover:border-white/50 bg-white/5'
+              <div
+                onClick={() => document.getElementById('file-upload').click()}
+                onDragEnter={handleDrag} onDragLeave={handleDrag}
+                onDragOver={handleDrag} onDrop={handleDrop}
+                className={`relative rounded-xl px-6 py-8 text-center cursor-pointer transition-all duration-200
+                  ${dragActive
+                    ? 'border-2 border-dashed border-white/40 bg-white/[0.08]'
+                    : 'border-2 border-dashed border-white/[0.1] hover:border-white/25 bg-white/[0.03]'
                   }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <Upload className="w-8 h-8 text-white/60 mx-auto mb-2" />
-                  <p className="text-white/80 mb-2">Drag & drop photos here</p>
-                  <p className="text-white/60 text-sm mb-4">or click to browse</p>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => handleFiles(e.target.files)}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="inline-block px-4 py-2 bg-white/20 text-white rounded-lg cursor-pointer hover:bg-white/30 transition-colors duration-300"
-                  >
-                    Choose Files
-                  </label>
+              >
+                <input
+                  id="file-upload" type="file" multiple accept="image/*"
+                  className="hidden" onChange={(e) => handleFiles(e.target.files)}
+                />
+                <div className="w-10 h-10 rounded-xl bg-white/[0.07] border border-white/[0.1] flex items-center justify-center mx-auto mb-3">
+                  <Upload size={17} className="text-white/40" strokeWidth={1.5} />
                 </div>
-
-                {/* Image Preview */}
-                {formData.images.length > 0 && (
-                  <div className="grid grid-cols-3 gap-4 mt-4">
-                    {formData.images.map((img, index) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={img.url}
-                          alt={`Upload ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <p className="text-[13px] text-white/45 mb-1">
+                  {dragActive ? 'Drop to upload' : 'Click to upload or drag & drop'}
+                </p>
+                <p className="text-[11px] text-white/20">PNG · JPG · WEBP · 10 MB each</p>
               </div>
+
+              {/* Previews */}
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-3 gap-3 mt-3">
+                  {formData.images.map((img, i) => (
+                    <div key={i} className="relative group rounded-xl overflow-hidden border border-white/[0.1] aspect-square">
+                      <img src={img.url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
+                      <button
+                        type="button" onClick={() => removeImage(i)}
+                        className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Notice */}
-          <div className="mt-8 p-4 bg-cyan-500/20 border border-cyan-500/30 rounded-xl flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
-            <p className="text-cyan-100 text-sm">
-              Your contact information will only be shared with users who may have found your item. 
-              We recommend meeting in a public place for any exchanges.
-            </p>
-          </div>
+            {/* Divider */}
+            <div className="border-t border-white/[0.07]" />
 
-          {/* Submit Button */}
-          <div className="mt-8 text-center">
-            <button
-              type="submit"
-              className="group relative px-12 py-4 bg-red-900 rounded-xl font-semibold text-white text-lg shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1"
-            >
-              <span className="relative z-10">Submit Lost Item Report</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-red-700 to-black-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
-          </div>
-        </form>
+            {/* Submit */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-[12px] text-white/25 text-center sm:text-left">
+                Your info is only shared with verified finders.
+              </p>
+              <button
+                type="submit"
+                className="group w-full sm:w-auto flex items-center justify-center overflow-hidden rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-[14px] tracking-tight transition-colors duration-150 shrink-0"
+              >
+                <span className="px-6 py-3.5">Submit Report</span>
+                <span className="self-stretch flex items-center px-4 bg-black/20 border-l border-white/10">
+                  <ChevronRight size={16} />
+                </span>
+              </button>
+            </div>
+
+          </form>
+        </div>
+
       </div>
     </div>
   );

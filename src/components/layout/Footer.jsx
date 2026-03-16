@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="md:col-span-2">
           <div className="flex items-center mb-4">
             <Search className="h-8 w-8 text-blue-400 mr-2" />
-            <span className="text-2xl font-bold">lost $ Found</span>
+            <span className="text-2xl font-bold">FindIT</span>
           </div>
           <p className="text-gray-400 text-lg max-w-md">
             Reuniting people with their lost items through the power of community and technology.
