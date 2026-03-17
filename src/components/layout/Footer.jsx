@@ -18,8 +18,7 @@ export default function Footer() {
           <h3 className="text-xl font-semibold mb-4">Quick Links</h3>
           <ul className="space-y-2 text-gray-400">
             <li><Link href="/" className="hover:text-white">Home</Link></li>
-            <li><Link href="/about" className="hover:text-white">About</Link></li>
-            <li><Link href="/contact" className="hover:text-white">Contact</Link></li>
+            <li><Link href="/about-us" className="hover:text-white">About</Link></li>
           </ul>
         </div>
         <div>
@@ -31,7 +30,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="text-center text-gray-400 border-t border-gray-800 mt-8 pt-8">
-        <p>&copy; 2025 lost $ Found. All rights reserved.</p>
+        <p>&copy; 2026 FindIT. All rights reserved.</p>
       </div>
     </footer>
   );
