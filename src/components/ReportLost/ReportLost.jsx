@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { Upload, MapPin, Calendar, Camera, CheckCircle2, X, Tag, FileText, ChevronRight } from 'lucide-react';
-
+import { useCreateLostItemMutation } from '@/redux/slices/lostItemApiSlice';
 export default function ReportLostItem() {
   const [formData, setFormData] = useState({
     itemName: '',
@@ -12,7 +12,7 @@ export default function ReportLostItem() {
   });
   const [dragActive, setDragActive] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
+  const [createLostItem, { isLoading }] = useCreateLostItemMutation();
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -43,9 +43,43 @@ export default function ReportLostItem() {
     setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
+
+    try {
+      const formDataToSend = new FormData();
+
+      formDataToSend.append("itemName", formData.itemName);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("location", formData.location);
+      formDataToSend.append("dateTime", formData.dateTime);
+
+      formData.images.forEach((img) => {
+        formDataToSend.append("images", img.file);
+      });
+
+      const res = await createLostItem(formDataToSend).unwrap();
+
+      if (res.success) {
+        setSubmitted(true);
+
+        // reset form
+        setFormData({
+          itemName: '',
+          description: '',
+          location: '',
+          dateTime: '',
+          images: []
+        });
+      }
+
+    } catch (error) {
+      console.error("Submit Error:", error);
+
+      alert(
+        error?.data?.message || "Failed to submit report. Are you logged in?"
+      );
+    }
   };
 
   // ── SUCCESS ──
@@ -214,7 +248,9 @@ export default function ReportLostItem() {
                 type="submit"
                 className="group w-full sm:w-auto flex items-center justify-center overflow-hidden rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-[14px] tracking-tight transition-colors duration-150 shrink-0"
               >
-                <span className="px-6 py-3.5">Submit Report</span>
+                <span className="px-6 py-3.5">
+                  {isLoading ? "Submitting..." : "Submit Report"}
+                </span>
                 <span className="self-stretch flex items-center px-4 bg-black/20 border-l border-white/10">
                   <ChevronRight size={16} />
                 </span>

@@ -86,7 +86,7 @@ export default function HeroSection() {
             </button>
 
             <button
-              onClick={() => router.push('/BrowseItem')}
+              onClick={() => router.push('/browse-items')}
               className="group w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-white/[0.12] bg-white/[0.05] text-white/65 hover:text-white hover:border-white/25 hover:bg-white/[0.09] text-[15px] font-medium hover:-translate-y-0.5 transition-all duration-200"
             >
               <MapPin size={17} strokeWidth={2} />
