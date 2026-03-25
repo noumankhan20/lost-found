@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Clock, Users, ArrowRight, Zap } from 'lucide-react';
+import { Search, MapPin, Clock, Users, ArrowRight } from 'lucide-react';
 import { useRouter } from "next/navigation";
 
 const stats = [
@@ -10,112 +10,246 @@ const stats = [
 ];
 
 export default function HeroSection() {
-  const [isVisible, setIsVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    setIsVisible(true);
+    const t = setTimeout(() => setMounted(true), 60);
+    return () => clearTimeout(t);
   }, []);
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-black via-red-900 overflow-hidden flex items-center">
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
 
-      {/* Grid pattern */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)',
-          backgroundSize: '36px 36px',
-        }}
-      />
+        .hero-root {
+          font-family: 'DM Sans', sans-serif;
+          position: relative;
+          min-height: 100svh;
+          background: #ffffff;
+          display: flex;
+          align-items: center;
+          overflow: hidden;
+        }
+        .hero-glow {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background:
+            radial-gradient(ellipse 70% 55% at 50% -5%, rgba(220,38,38,0.07) 0%, transparent 65%),
+            radial-gradient(ellipse 40% 30% at 85% 90%, rgba(220,38,38,0.04) 0%, transparent 60%);
+        }
+        .hero-grid {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background-image: radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px);
+          background-size: 40px 40px;
+        }
+        .hero-fade {
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          height: 120px;
+          background: linear-gradient(to top, #ffffff, transparent);
+          pointer-events: none;
+        }
+        .hero-inner {
+          position: relative;
+          z-index: 10;
+          width: 100%;
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 100px 24px 80px;
+          text-align: center;
+        }
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 16px;
+          border-radius: 100px;
+          background: rgba(220,38,38,0.06);
+          border: 1px solid rgba(220,38,38,0.15);
+          color: rgba(180,28,28,0.85);
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          margin-bottom: 40px;
+          opacity: 0;
+          transform: translateY(10px);
+          transition: opacity 0.7s ease 0.1s, transform 0.7s ease 0.1s;
+        }
+        .hero-badge.in { opacity: 1; transform: translateY(0); }
+        .badge-dot {
+          width: 6px; height: 6px;
+          border-radius: 50%;
+          background: #dc2626;
+          box-shadow: 0 0 6px rgba(220,38,38,0.5);
+        }
+        .hero-h1 {
+          font-family: 'Syne', sans-serif;
+          font-weight: 800;
+          color: #0f0f0f;
+          line-height: 1;
+          letter-spacing: -0.05em;
+          font-size: clamp(64px, 11vw, 104px);
+          margin: 0 0 18px;
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+        }
+        .hero-h1 span { color: #dc2626; }
+        .hero-h1.in { opacity: 1; transform: translateY(0); }
+        .hero-sub {
+          font-size: clamp(17px, 2.5vw, 22px);
+          font-weight: 300;
+          color: rgba(15,15,15,0.45);
+          letter-spacing: -0.01em;
+          margin: 0 0 14px;
+          opacity: 0;
+          transform: translateY(16px);
+          transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+        }
+        .hero-sub.in { opacity: 1; transform: translateY(0); }
+        .hero-body {
+          font-size: clamp(14px, 1.6vw, 16px);
+          color: rgba(15,15,15,0.5);
+          line-height: 1.75;
+          max-width: 520px;
+          margin: 0 auto 48px;
+          opacity: 0;
+          transform: translateY(14px);
+          transition: opacity 0.8s ease 0.4s, transform 0.8s ease 0.4s;
+        }
+        .hero-body.in { opacity: 1; transform: translateY(0); }
+        .hero-ctas {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          justify-content: center;
+          align-items: center;
+          margin-bottom: 72px;
+          opacity: 0;
+          transform: translateY(12px);
+          transition: opacity 0.8s ease 0.5s, transform 0.8s ease 0.5s;
+        }
+        .hero-ctas.in { opacity: 1; transform: translateY(0); }
+        @media (min-width: 480px) { .hero-ctas { flex-direction: row; } }
+        .btn-primary {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 14px 28px;
+          background: #dc2626; color: #fff;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 15px; font-weight: 600;
+          border: none; border-radius: 12px; cursor: pointer;
+          letter-spacing: 0.01em;
+          box-shadow: 0 4px 20px rgba(220,38,38,0.25);
+          transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+          text-decoration: none; white-space: nowrap;
+        }
+        .btn-primary:hover {
+          background: #b91c1c;
+          box-shadow: 0 8px 28px rgba(220,38,38,0.35);
+          transform: translateY(-2px);
+        }
+        .btn-arrow { opacity: 0.6; transition: transform 0.2s, opacity 0.2s; }
+        .btn-primary:hover .btn-arrow { transform: translateX(3px); opacity: 1; }
+        .btn-secondary {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 14px 28px;
+          background: #fff; color: rgba(15,15,15,0.6);
+          font-family: 'DM Sans', sans-serif;
+          font-size: 15px; font-weight: 500;
+          border: 1px solid rgba(0,0,0,0.12); border-radius: 12px; cursor: pointer;
+          letter-spacing: 0.01em;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+          transition: all 0.2s;
+          text-decoration: none; white-space: nowrap;
+        }
+        .btn-secondary:hover {
+          border-color: rgba(0,0,0,0.22);
+          color: #0f0f0f;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+        }
+        .hero-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px; max-width: 680px; margin: 0 auto;
+        }
+        @media (max-width: 540px) {
+          .hero-stats { grid-template-columns: 1fr; max-width: 280px; }
+        }
+        .stat-card {
+          padding: 24px 16px;
+          background: #fff;
+          border: 1px solid rgba(0,0,0,0.07);
+          border-radius: 16px; cursor: default;
+          box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+          opacity: 0; transform: translateY(12px);
+          transition: border-color 0.2s, box-shadow 0.2s, opacity 0.7s ease, transform 0.7s ease;
+        }
+        .stat-card:hover {
+          border-color: rgba(220,38,38,0.2);
+          box-shadow: 0 4px 20px rgba(220,38,38,0.08);
+        }
+        .stat-card.in { opacity: 1; transform: translateY(0); }
+        .stat-icon { color: rgba(220,38,38,0.35); margin: 0 auto 10px; display: block; transition: color 0.2s; }
+        .stat-card:hover .stat-icon { color: #dc2626; }
+        .stat-val {
+          font-family: 'Syne', sans-serif;
+          font-size: 30px; font-weight: 700; color: #0f0f0f;
+          letter-spacing: -0.04em; line-height: 1; margin-bottom: 6px;
+        }
+        .stat-label {
+          font-size: 12px; font-weight: 500; color: rgba(15,15,15,0.38);
+          letter-spacing: 0.06em; text-transform: uppercase;
+        }
+      `}</style>
 
-      {/* Vignette — darkens edges so centre pops */}
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 75% 75% at 50% 50%, transparent 40%, rgba(0,0,0,0.55) 100%)' }}
-      />
-
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 sm:px-8 py-24 text-center">
-
-        <div
-          className="transition-all duration-1000"
-          style={{
-            opacity: isVisible ? 1 : 0,
-            transform: isVisible ? 'translateY(0)' : 'translateY(24px)',
-          }}
-        >
-
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] text-white/50 text-[11px] font-semibold tracking-[0.18em] uppercase mb-8">
-            <Zap size={10} strokeWidth={2.5} className="text-red-400" />
-            AI-Powered Lost & Found Platform
+      <section className="hero-root">
+        <div className="hero-glow" />
+        <div className="hero-grid" />
+        <div className="hero-fade" />
+        <div className="hero-inner">
+          <div className={`hero-badge ${mounted ? 'in' : ''}`}>
+            <span className="badge-dot" />
+            AI-Powered Lost &amp; Found Platform
           </div>
-
-          {/* Headline */}
-          <h1 className="font-black text-white leading-[1.0] tracking-[-0.04em] mb-4"
-            style={{ fontSize: 'clamp(56px, 10vw, 96px)' }}
-          >
-            FindIT
-          </h1>
-
-          <p className="font-light text-white/40 tracking-[-0.01em] mb-8"
-            style={{ fontSize: 'clamp(18px, 3vw, 28px)' }}
-          >
-            Your AI-Powered Lost &amp; Found Management System
-          </p>
-
-          {/* Sub-copy */}
-          <p className="text-white/55 leading-relaxed max-w-xl mx-auto mb-12"
-            style={{ fontSize: 'clamp(15px, 1.8vw, 17px)' }}
-          >
+          <h1 className={`hero-h1 ${mounted ? 'in' : ''}`}>Find<span>IT</span></h1>
+          <p className={`hero-sub ${mounted ? 'in' : ''}`}>Your AI-Powered Lost &amp; Found Management System</p>
+          <p className={`hero-body ${mounted ? 'in' : ''}`}>
             Connect with your community to find lost items faster than ever.
             Post, search, and reunite with what matters most.
           </p>
-
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center mb-20">
-            <button
-              onClick={() => router.push('/report-lost')}
-              className="group relative w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[15px] font-semibold overflow-hidden shadow-[0_4px_24px_rgba(220,38,38,0.35)] hover:shadow-[0_8px_32px_rgba(220,38,38,0.5)] hover:-translate-y-0.5 transition-all duration-200"
-            >
-              <Search size={17} strokeWidth={2.5} />
+          <div className={`hero-ctas ${mounted ? 'in' : ''}`}>
+            <button className="btn-primary" onClick={() => router.push('/report-lost')}>
+              <Search size={16} strokeWidth={2.5} />
               Report Lost Item
-              <ArrowRight size={14} className="opacity-50 group-hover:translate-x-0.5 transition-transform duration-200" />
+              <ArrowRight size={14} className="btn-arrow" />
             </button>
-
-            <button
-              onClick={() => router.push('/browse-items')}
-              className="group w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl border border-white/[0.12] bg-white/[0.05] text-white/65 hover:text-white hover:border-white/25 hover:bg-white/[0.09] text-[15px] font-medium hover:-translate-y-0.5 transition-all duration-200"
-            >
-              <MapPin size={17} strokeWidth={2} />
+            <button className="btn-secondary" onClick={() => router.push('/browse-items')}>
+              <MapPin size={16} strokeWidth={2} />
               Browse Found Items
             </button>
           </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+          <div className="hero-stats">
             {stats.map(({ icon: Icon, label, value }, i) => (
               <div
                 key={i}
-                className="p-6 rounded-2xl bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/[0.16] group transition-all duration-200 cursor-default"
-                style={{
-                  opacity: isVisible ? 1 : 0,
-                  transform: isVisible ? 'translateY(0)' : 'translateY(16px)',
-                  transition: `opacity 0.7s ease ${i * 120 + 300}ms, transform 0.7s ease ${i * 120 + 300}ms, background 0.2s, border-color 0.2s`,
-                }}
+                className={`stat-card ${mounted ? 'in' : ''}`}
+                style={{ transitionDelay: mounted ? `${0.6 + i * 0.1}s` : '0s' }}
               >
-                <Icon className="w-7 h-7 text-red-400/60 group-hover:text-red-400 mx-auto mb-3.5 transition-colors duration-200" strokeWidth={1.5} />
-                <div className="text-[32px] font-extrabold text-white tracking-tight leading-none mb-1.5">{value}</div>
-                <div className="text-white/40 text-[12.5px] font-medium tracking-wide">{label}</div>
+                <Icon className="stat-icon" size={26} strokeWidth={1.5} />
+                <div className="stat-val">{value}</div>
+                <div className="stat-label">{label}</div>
               </div>
             ))}
           </div>
-
         </div>
-      </div>
-
-    </section>
+      </section>
+    </>
   );
 }
