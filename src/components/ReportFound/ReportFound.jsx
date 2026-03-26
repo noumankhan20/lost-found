@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { Upload, MapPin, Calendar, Camera, CheckCircle2, X, Tag, FileText, ChevronRight, ArrowLeft, PackageCheck, User, AlertCircle } from 'lucide-react';
-// import { useCreateFoundItemMutation } from '@/redux/slices/foundItemApiSlice';/
+import { useCreateFoundItemMutation } from '@/redux/slices/foundItemApiSlice'
 import Link from 'next/link';
 
 export default function ReportFoundItem() {
@@ -16,7 +16,7 @@ export default function ReportFoundItem() {
   });
   const [dragActive, setDragActive] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-//   const [createFoundItem, { isLoading }] = useCreateFoundItemMutation();
+  const [createFoundItem, { isLoading }] = useCreateFoundItemMutation();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,7 +60,7 @@ export default function ReportFoundItem() {
       const res = await createFoundItem(formDataToSend).unwrap();
       if (res.success) {
         setSubmitted(true);
-        setFormData({ itemName: '', description: '', location: '', dateTime: '', images: [] });
+        setFormData({ itemName: '', description: '', dateTime: '', images: [] });
       }
     } catch (error) {
       console.error("Submit Error:", error);
@@ -115,7 +115,7 @@ export default function ReportFoundItem() {
                 Report Another Found Item
                 <ChevronRight size={15} />
               </button>
-              <Link href="/lost-and-found"
+              <Link href="/browse-items"
                 className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl
                   bg-black/[0.04] hover:bg-black/[0.07] text-[#0f0f0f] text-[14px] font-semibold
                   transition-all duration-200 no-underline">
@@ -360,6 +360,21 @@ export default function ReportFoundItem() {
                 />
               </div>
 
+              {/* ── Location ── */}
+              <div>
+                <label className="rf-step">
+                  <MapPin size={11} strokeWidth={2.5} />
+                  Where did you find it?
+                  <span className="ml-auto font-normal tracking-normal normal-case text-[10.5px] text-black/25">Required</span>
+                </label>
+                <input
+                  type="text" name="location" required
+                  value={formData.location} onChange={handleInputChange}
+                  placeholder="e.g. Library 2nd floor, Central Park near the fountain…"
+                  className="rf-input"
+                />
+              </div>
+
               {/* ── Date ── */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -450,7 +465,7 @@ export default function ReportFoundItem() {
                   {/* Submit button — emerald */}
                   <button
                     type="submit"
-                    // disabled={isLoading}
+                    disabled={isLoading}
                     className="group w-full sm:w-auto flex items-center justify-center overflow-hidden
                       rounded-xl bg-emerald-600 hover:bg-emerald-700
                       text-white font-semibold text-[14px] tracking-tight
@@ -460,7 +475,7 @@ export default function ReportFoundItem() {
                       shrink-0 border-none cursor-pointer"
                   >
                     <span className="px-6 py-3.5">
-                      {/* {isLoading ? 'Submitting…' : 'Submit Report'} */}
+                      {isLoading ? 'Submitting…' : 'Submit Report'}
                     </span>
                     <span className="self-stretch flex items-center px-4 bg-black/15 border-l border-white/15">
                       <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform duration-200" />

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Search, MapPin, Calendar, Clock, Plus, SlidersHorizontal, X, ArrowUpRight, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useGetAllLostItemsQuery } from "@/redux/slices/lostItemApiSlice";
-
+import { useGetAllFoundItemsQuery } from "@/redux/slices/foundItemApiSlice";
 
 // ── Item Card ────────────────────────────────────────────────────────────────
 function ItemCard({ item, formatDate, index }) {
@@ -86,7 +86,7 @@ function ItemCard({ item, formatDate, index }) {
             <span className="text-[11.5px] text-gray-900 truncate">{item.reportedBy}</span>
           </div>
           <Link
-            href={`/lost-items/${item.id}`}
+            href={`/${item.status}-items/${item.id}`}
             className="flex items-center gap-1 text-[12px] font-semibold text-red-600
               hover:text-red-700 transition-colors shrink-0 ml-2 no-underline">
             Details <ArrowUpRight size={12} />
@@ -105,10 +105,23 @@ export default function LostAndFoundPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState("lost");
 
-  const { data, isLoading, error } = useGetAllLostItemsQuery();
+  const {
+    data: lostData,
+    isLoading: lostLoading,
+    error: lostError,
+  } = useGetAllLostItemsQuery();
+
+  const {
+    data: foundData,
+    isLoading: foundLoading,
+    error: foundError,
+  } = useGetAllFoundItemsQuery();
   useEffect(() => {
-    if (data?.data) {
-      const formatted = data.data.map((item) => ({
+    let allItems = [];
+
+    // 🔴 LOST ITEMS
+    if (lostData?.data) {
+      const lostFormatted = lostData.data.map((item) => ({
         id: item._id,
         name: item.itemName,
         description: item.description,
@@ -121,16 +134,39 @@ export default function LostAndFoundPage() {
         image: item.images?.[0]
           ? `http://localhost:5000/${item.images[0].replace(/\\/g, "/")}`
           : "/placeholder.png",
-          status: "lost",
-          reportedBy: item.user?.name || "Unknown",
-        }));
-        
-        setItems(formatted);
-        setFilteredItems(formatted);
-      }
-    }, [data]);
-    // console.log(item.image);
-    
+        status: "lost",
+        reportedBy: item.user?.name || "Unknown",
+      }));
+
+      allItems = [...allItems, ...lostFormatted];
+    }
+
+    // 🟢 FOUND ITEMS
+    if (foundData?.data) {
+      const foundFormatted = foundData.data.map((item) => ({
+        id: item._id,
+        name: item.itemName,
+        description: item.description,
+        location: item.location,
+        date: item.dateTime,
+        time: new Date(item.dateTime).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        image: item.images?.[0]
+          ? `http://localhost:5000/${item.images[0].replace(/\\/g, "/")}`
+          : "/placeholder.png",
+        status: "found",
+        reportedBy: item.user?.name || "Unknown",
+      }));
+
+      allItems = [...allItems, ...foundFormatted];
+    }
+
+    setItems(allItems);
+    setFilteredItems(allItems);
+  }, [lostData, foundData]);
+
   useEffect(() => {
     let result = items.filter((i) => i.status === viewMode);
     if (searchQuery) {
@@ -149,7 +185,7 @@ export default function LostAndFoundPage() {
   const lostCount = items.filter((i) => i.status === "lost").length;
   const foundCount = items.filter((i) => i.status === "found").length;
 
-  if (isLoading) {
+  if (lostLoading || foundLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="flex flex-col items-center gap-4">
@@ -162,7 +198,7 @@ export default function LostAndFoundPage() {
       </div>
     );
   }
-  if (error) {
+  if (lostError || foundError){
     return <div className="p-10 text-red-500">Error loading items</div>;
   }
 
