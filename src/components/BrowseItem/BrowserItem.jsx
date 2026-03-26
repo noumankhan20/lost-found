@@ -1,398 +1,366 @@
 "use client"
-import React, { useState, useEffect, useRef } from "react";
-import { Search, MapPin, Calendar, Clock, Plus, SlidersHorizontal, X, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, MapPin, Calendar, Clock, Plus, SlidersHorizontal, X, ArrowUpRight, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useGetAllLostItemsQuery } from "@/redux/slices/lostItemApiSlice";
 
-// ── Horizontal scroll carousel ──────────────────────────────────────────────
-function ItemCarousel({ items, formatDate }) {
-  const trackRef = useRef(null);
-  const [canLeft, setCanLeft] = useState(false);
-  const [canRight, setCanRight] = useState(false);
 
-  const checkScroll = () => {
-    const el = trackRef.current;
-    if (!el) return;
-    setCanLeft(el.scrollLeft > 4);
-    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-  };
-
-  useEffect(() => {
-    checkScroll();
-    const el = trackRef.current;
-    if (el) el.addEventListener("scroll", checkScroll, { passive: true });
-    window.addEventListener("resize", checkScroll);
-    return () => {
-      if (el) el.removeEventListener("scroll", checkScroll);
-      window.removeEventListener("resize", checkScroll);
-    };
-  }, [items]);
-
-  const scroll = (dir) => {
-    const el = trackRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir * 320, behavior: "smooth" });
-  };
-
-  if (items.length === 0) return null;
-
-  return (
-    <div className="relative">
-      {/* Left arrow */}
-      {canLeft && (
-        <button
-          onClick={() => scroll(-1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-9 h-9 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-600 hover:text-red-600 hover:border-red-200 transition-all"
-        >
-          <ChevronLeft size={16} />
-        </button>
-      )}
-
-      {/* Right arrow */}
-      {canRight && (
-        <button
-          onClick={() => scroll(1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-9 h-9 rounded-full bg-white border border-gray-200 shadow-md flex items-center justify-center text-gray-600 hover:text-red-600 hover:border-red-200 transition-all"
-        >
-          <ChevronRight size={16} />
-        </button>
-      )}
-
-      {/* Track */}
-      <div
-        ref={trackRef}
-        className="flex gap-5 overflow-x-auto pb-3 scroll-smooth"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {items.map((item) => (
-          <ItemCard key={item.id} item={item} formatDate={formatDate} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Single item card ─────────────────────────────────────────────────────────
-function ItemCard({ item, formatDate }) {
+// ── Item Card ────────────────────────────────────────────────────────────────
+function ItemCard({ item, formatDate, index }) {
   return (
     <div
-      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
-      style={{ minWidth: "280px", maxWidth: "280px", width: "280px" }}
+      className="group flex flex-col bg-white border border-black/7 rounded-2xl overflow-hidden
+        shadow-[0_1px_4px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.03)]
+        hover:shadow-[0_6px_28px_rgba(0,0,0,0.09)]
+        hover:border-black/11 hover:-translate-y-1
+        transition-all duration-300 cursor-default"
+      style={{
+        animationDelay: `${index * 60}ms`,
+        animation: "fadeSlideUp 0.35s ease both",
+      }}
     >
       {/* Image */}
-      <div className="relative h-44 overflow-hidden bg-gray-100 shrink-0">
+      <div className="relative h-44 overflow-hidden bg-[#f5f5f5] shrink-0">
         <img
-          src={`${item.image}?w=400&h=300&fit=crop`}
+          src={item.image}
           alt={item.name}
           className="w-full h-full object-cover object-center group-hover:scale-[1.04] transition-transform duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
         {/* Status badge */}
-        <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide backdrop-blur-sm ${
-          item.status === "lost" ? "bg-red-500/90 text-white" : "bg-emerald-500/90 text-white"
-        }`}>
+        <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full
+          text-[10.5px] font-bold uppercase tracking-[0.08em] backdrop-blur-md
+          ${item.status === "lost"
+            ? "bg-red-600/90 text-white"
+            : "bg-emerald-600/90 text-white"}`}
+        >
           <span className={`w-1.5 h-1.5 rounded-full ${item.status === "lost" ? "bg-red-200" : "bg-emerald-200"}`} />
           {item.status}
         </div>
-
-        {/* Category pill */}
-        <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm text-white/90 text-[10.5px] font-medium px-2.5 py-1 rounded-full">
-          {item.category}
-        </div>
       </div>
 
-      {/* Body — flex-1 so all cards stretch to same height */}
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className="text-[15px] font-bold text-gray-900 mb-1.5 group-hover:text-red-600 transition-colors leading-snug line-clamp-1">
+      {/* Body */}
+      <div className="p-5 flex flex-col flex-1">
+        <h3
+          className="text-[15px] font-bold text-[#0f0f0f] mb-1.5 leading-snug line-clamp-1
+            group-hover:text-red-600 transition-colors duration-200"
+          style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.01em' }}
+        >
           {item.name}
         </h3>
-        <p className="text-[12.5px] text-gray-400 mb-4 line-clamp-2 leading-relaxed flex-shrink-0" style={{ minHeight: "36px" }}>
+        <p className="text-[12.5px] text-gray-900 mb-4 line-clamp-2 leading-relaxed flex-shrink-0" style={{ minHeight: "36px" }}>
           {item.description}
         </p>
 
-        {/* Meta — pushed down by flex */}
+        {/* Meta */}
         <div className="space-y-1.5 mb-4 mt-auto">
           <div className="flex items-center gap-2">
-            <MapPin className="w-3.5 h-3.5 text-red-400 shrink-0" />
-            <span className="text-[12px] text-gray-500 truncate">{item.location}</span>
+            <MapPin className="w-3 h-3 text-red-500 shrink-0" />
+            <span className="text-[12px] text-gray-900 truncate">{item.location}</span>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-red-400 shrink-0" />
-              <span className="text-[12px] text-gray-500">{formatDate(item.date)}</span>
+              <Calendar className="w-3 h-3 text-red-500 shrink-0" />
+              <span className="text-[12px] text-gray-900">{formatDate(item.date)}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-red-400 shrink-0" />
-              <span className="text-[12px] text-gray-500">{item.time}</span>
+              <Clock className="w-3 h-3 text-red-500 shrink-0" />
+              <span className="text-[12px] text-gray-900">{item.time}</span>
             </div>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gray-100 mb-3" />
+        <div className="h-px bg-black/6 mb-3.5" />
 
-        {/* Reporter + CTA — always at bottom */}
+        {/* Footer */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-6 h-6 rounded-full bg-red-100 border border-red-200 flex items-center justify-center text-red-500 text-[10px] font-bold shrink-0">
+            <div className="w-6 h-6 rounded-full bg-red-50 border border-red-100
+              flex items-center justify-center text-red-600 text-[10px] font-bold shrink-0"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
               {item.reportedBy[0]}
             </div>
-            <span className="text-[11.5px] text-gray-400 truncate">{item.reportedBy}</span>
+            <span className="text-[11.5px] text-gray-900 truncate">{item.reportedBy}</span>
           </div>
-          <button className="flex items-center gap-1 text-[12px] font-semibold text-red-600 hover:text-red-500 transition-colors shrink-0 ml-2">
-            Details <ArrowUpRight size={13} />
-          </button>
+          <Link
+            href={`/lost-items/${item.id}`}
+            className="flex items-center gap-1 text-[12px] font-semibold text-red-600
+              hover:text-red-700 transition-colors shrink-0 ml-2 no-underline">
+            Details <ArrowUpRight size={12} />
+          </Link>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Main page ────────────────────────────────────────────────────────────────
-const LostAndFoundPage = () => {
+// ── Main page ─────────────────────────────────────────────────────────────────
+export default function LostAndFoundPage() {
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [filterOpen, setFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState("lost");
 
+  const { data, isLoading, error } = useGetAllLostItemsQuery();
   useEffect(() => {
-    const fetchItems = async () => {
-      setIsLoading(true);
-      try {
-        const mockItems = [
-          { id: 1, name: "Nouman", category: "Personal Items", location: "Kurla", date: "2025-02-21", time: "14:30", description: "A man with a button on his head", image: "/lost.webp", status: "lost", reportedBy: "Alex Johnson" },
-          { id: 2, name: "AirPods Pro", category: "Electronics", location: "Student Center Cafeteria", date: "2025-09-23", time: "12:15", description: "White AirPods Pro in charging case", image: "/air.jpg", status: "found", reportedBy: "Akshat Gupta" },
-          { id: 3, name: "Blue Hydroflask", category: "Personal Items", location: "Gym, Locker Room", date: "2025-09-21", time: "18:45", description: "32oz navy blue water bottle with stickers", image: "/bottle.webp", status: "lost", reportedBy: "James Wilson" },
-          { id: 4, name: "Car Keys with Red Lanyard", category: "Keys", location: "Parking Lot B", date: "2025-09-24", time: "09:10", description: "Toyota car keys with university logo lanyard", image: "https://images.unsplash.com/photo-1514316454349-750a7fd3da3a", status: "found", reportedBy: "Campus Security" },
-          { id: 5, name: "Prescription Glasses", category: "Personal Items", location: "Science Building, Room 302", date: "2025-09-23", time: "15:20", description: "Black-framed glasses with case", image: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371", status: "lost", reportedBy: "Emily Parker" },
-          { id: 6, name: "MacBook Pro", category: "Electronics", location: "Central Library Study Room", date: "2025-09-22", time: "16:35", description: "13-inch Space Gray MacBook with stickers on cover", image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8", status: "lost", reportedBy: "Michael Zhang" },
-          { id: 7, name: "Student ID Card", category: "IDs & Documents", location: "Campus Bus Stop", date: "2025-09-24", time: "08:45", description: "University ID for Sarah Thompson", image: "https://images.unsplash.com/photo-1608236415053-3691791bbffe", status: "found", reportedBy: "Bus Driver" },
-          { id: 8, name: "Organic Chemistry", category: "Books & Notes", location: "Chemistry Lab", date: "2025-09-21", time: "13:15", description: "7th edition with yellow highlights throughout", image: "https://images.unsplash.com/photo-1532153975070-2e9ab71f1b14", status: "found", reportedBy: "Lab Assistant" },
-        ];
-        const uniqueCategories = ["All", ...new Set(mockItems.map((item) => item.category))];
-        setItems(mockItems);
-        setFilteredItems(mockItems);
-        setCategories(uniqueCategories);
-      } catch (error) {
-        console.error("Error fetching items:", error);
-      } finally {
-        setIsLoading(false);
+    if (data?.data) {
+      const formatted = data.data.map((item) => ({
+        id: item._id,
+        name: item.itemName,
+        description: item.description,
+        location: item.location,
+        date: item.dateTime,
+        time: new Date(item.dateTime).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        image: item.images?.[0]
+          ? `http://localhost:5000/${item.images[0].replace(/\\/g, "/")}`
+          : "/placeholder.png",
+          status: "lost",
+          reportedBy: item.user?.name || "Unknown",
+        }));
+        
+        setItems(formatted);
+        setFilteredItems(formatted);
       }
-    };
-    fetchItems();
-  }, []);
-
+    }, [data]);
+    // console.log(item.image);
+    
   useEffect(() => {
-    let result = [...items];
-    result = result.filter((item) => item.status === viewMode);
-    if (selectedCategory !== "All") result = result.filter((item) => item.category === selectedCategory);
+    let result = items.filter((i) => i.status === viewMode);
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter((item) =>
-        item.name.toLowerCase().includes(query) ||
-        item.description.toLowerCase().includes(query) ||
-        item.location.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query)
+      const q = searchQuery.toLowerCase();
+      result = result.filter((i) =>
+        i.name.toLowerCase().includes(q) ||
+        i.description.toLowerCase().includes(q) ||
+        i.location.toLowerCase().includes(q)
       );
     }
     setFilteredItems(result);
-  }, [items, selectedCategory, searchQuery, viewMode]);
+  }, [items, searchQuery, viewMode]);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-[3px] border-gray-200 border-t-red-600 rounded-full animate-spin" />
-          <p className="text-[13px] text-gray-400 font-medium tracking-wide uppercase">Loading items...</p>
-        </div>
-      </div>
-    );
-  }
+  const formatDate = (d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
   const lostCount = items.filter((i) => i.status === "lost").length;
   const foundCount = items.filter((i) => i.status === "found").length;
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-
-      {/* ── Hero header ── */}
-      <div
-        className="relative overflow-hidden px-6 py-14 sm:px-10 sm:py-20"
-        style={{ background: "linear-gradient(160deg, #7f0000 0%, #b91c1c 50%, #450a0a 100%)" }}
-      >
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%)", backgroundSize: "22px 22px" }} />
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #fca5a5, transparent 70%)" }} />
-        <div className="absolute -bottom-24 -left-12 w-72 h-72 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #f87171, transparent 70%)" }} />
-
-        <div className="relative z-10 max-w-5xl mx-auto">
-          <p className="text-red-300/60 text-[11px] font-semibold tracking-[0.2em] uppercase mb-3">FindIt Platform</p>
-          <h1 className="text-white font-black text-[clamp(32px,6vw,56px)] leading-tight tracking-tight mb-4">
-            Lost &amp; <span className="text-red-300">Found</span>
-          </h1>
-          <p className="text-red-100/55 text-[15px] max-w-md leading-relaxed mb-10">
-            Help reunite people with their belongings. Browse reports or file your own in seconds.
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-9 h-9 border-[2.5px] border-black/8 border-t-red-600 rounded-full animate-spin" />
+          <p className="text-[12px] text-black/30 font-medium tracking-[0.14em] uppercase"
+            style={{ fontFamily: "'Syne', sans-serif" }}>
+            Loading…
           </p>
-          <div className="flex items-center gap-8">
-            {[
-              { val: lostCount, label: "Active Lost", color: "text-red-300" },
-              { val: foundCount, label: "Items Found", color: "text-emerald-300" },
-              { val: "98%", label: "Match Rate", color: "text-white" },
-            ].map(({ val, label, color }) => (
-              <div key={label} className="flex flex-col">
-                <span className={`font-black text-[26px] leading-none ${color}`}>{val}</span>
-                <span className="text-red-200/45 text-[11px] font-medium mt-1 uppercase tracking-wider">{label}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
+    );
+  }
+  if (error) {
+    return <div className="p-10 text-red-500">Error loading items</div>;
+  }
 
-      {/* ── Sticky toolbar ── */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-3.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+        .bf-root { font-family: 'DM Sans', sans-serif; }
+        .bf-search::placeholder { color: rgba(15,15,15,0.3); }
+        .bf-search:focus { border-color: rgba(220,38,38,0.4) !important; box-shadow: 0 0 0 3px rgba(220,38,38,0.07); }
+        .bf-date:focus { border-color: rgba(220,38,38,0.4) !important; box-shadow: 0 0 0 3px rgba(220,38,38,0.07); }
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
 
-          {/* Toggle */}
-          <div className="flex bg-gray-100 rounded-xl p-1 shrink-0">
-            {["lost", "found"].map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`px-5 py-2 rounded-lg text-[13px] font-semibold capitalize transition-all duration-200 ${
-                  viewMode === mode
-                    ? mode === "lost" ? "bg-red-600 text-white shadow-sm" : "bg-emerald-600 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-800"
-                }`}
-              >
-                {mode === "lost" ? "Lost" : "Found"}
-              </button>
-            ))}
+      <div className="bf-root min-h-screen bg-[#fafafa]">
+
+        {/* ── PAGE HEADER ── */}
+        <div className="relative overflow-hidden bg-white">
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse 70% 55% at 50% -5%, rgba(220,38,38,0.07) 0%, transparent 65%)' }} />
+          <div className="absolute inset-0 pointer-events-none opacity-40"
+            style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
+          <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+            style={{ background: 'linear-gradient(to top, #ffffff, transparent)' }} />
+
+          <div className="relative z-10 max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-14">
+            <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-red-600 mb-3">
+              Community Board
+            </p>
+            <h1 className="text-[clamp(32px,6vw,52px)] font-extrabold text-[#0f0f0f] leading-[1.05] tracking-[-0.04em] mb-4"
+              style={{ fontFamily: "'Syne', sans-serif" }}>
+              Lost &amp; Found
+            </h1>
+            <p className="text-[15px] font-light text-black/45 max-w-md leading-relaxed mb-10">
+              Help reunite people with their belongings. Browse community reports or file your own in seconds.
+            </p>
+
+            {/* Stat pills */}
+            <div className="flex flex-wrap items-center gap-3">
+              {[
+                { val: lostCount, label: "Active Lost", dot: "bg-red-500" },
+                { val: foundCount, label: "Items Found", dot: "bg-emerald-500" },
+                { val: "98%", label: "Match Rate", dot: "bg-blue-500" },
+              ].map(({ val, label, dot }) => (
+                <div key={label}
+                  className="flex items-center text-gray-700 gap-2.5 px-4 py-2 rounded-full
+                    bg-white border border-black/7 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
+                  <span className={`w-2 h-2 rounded-full ${dot}`} />
+                  <span className="text-[13px] font-bold text-[#0f0f0f]"
+                    style={{ fontFamily: "'Syne', sans-serif" }}>{val}</span>
+                  <span className="text-[11.5px] text-black/38">{label}</span>
+                </div>
+              ))}
+            </div>
           </div>
-
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name, location, category…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 hover:border-gray-300 focus:border-red-400 focus:ring-4 focus:ring-red-50 rounded-xl text-[13.5px] text-gray-800 placeholder-gray-400 outline-none transition-all"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                <X size={14} />
-              </button>
-            )}
-          </div>
-
-          {/* Filter toggle */}
-          <button
-            onClick={() => setFilterOpen(!filterOpen)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[13px] font-semibold transition-all shrink-0 ${
-              filterOpen ? "bg-red-50 border-red-200 text-red-600" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
-            }`}
-          >
-            <SlidersHorizontal size={14} />
-            Filters
-          </button>
-
-          {/* Report CTA — routes based on viewMode */}
-          <Link
-            href={viewMode === "lost" ? "/report-lost" : "/report-found"}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[13px] font-semibold transition-colors shrink-0 shadow-sm"
-          >
-            <Plus size={14} />
-            Report {viewMode === "lost" ? "Lost" : "Found"} Item
-          </Link>
         </div>
 
-        {/* Expandable filter row */}
-        {filterOpen && (
-          <div className="border-t border-gray-100 bg-white px-5 sm:px-8 py-4">
-            <div className="max-w-6xl mx-auto flex flex-col sm:flex-row gap-5">
-              <div className="flex-1">
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-2.5">Category</p>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
-                        selectedCategory === cat ? "bg-red-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex gap-4 shrink-0">
+        {/* ── STICKY TOOLBAR ── */}
+        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b border-black/6
+          shadow-[0_1px_12px_rgba(0,0,0,0.05)]">
+          <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+
+            {/* Lost / Found toggle */}
+            <div className="flex bg-black/[0.04] rounded-xl p-1 shrink-0">
+              {["lost", "found"].map((mode) => (
+                <button key={mode} onClick={() => setViewMode(mode)}
+                  className={`px-5 py-2 rounded-[10px] text-[13px] font-semibold capitalize transition-all duration-200 ${viewMode === mode
+                    ? mode === "lost"
+                      ? "bg-red-600 text-white shadow-sm"
+                      : "bg-emerald-600 text-white shadow-sm"
+                    : "text-black/45 hover:text-black/70"
+                    }`}>
+                  {mode === "lost" ? `Lost (${lostCount})` : `Found (${foundCount})`}
+                </button>
+              ))}
+            </div>
+
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/30" />
+              <input
+                type="text"
+                placeholder="Search items, location…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bf-search w-full pl-10 pr-9 py-2.5
+                  bg-black/[0.03] border border-black/8
+                  hover:border-black/14 rounded-xl
+                  text-[13.5px] text-[#0f0f0f]
+                  outline-none transition-all duration-200"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-black/30 hover:text-black/55 transition-colors">
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Filter toggle — date only now */}
+            <button onClick={() => setFilterOpen(!filterOpen)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[13px] font-semibold transition-all duration-200 shrink-0 ${filterOpen
+                ? "bg-red-50 border-red-200 text-red-600"
+                : "bg-white border-black/8 text-black/50 hover:border-black/14 hover:text-black/70"
+                }`}>
+              <SlidersHorizontal size={13} />
+              Filters
+            </button>
+
+            {/* Report CTA */}
+            <Link href={viewMode === "lost" ? "/report-lost" : "/report-found"}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+                bg-red-600 hover:bg-red-700 text-white text-[13px] font-semibold
+                shadow-[0_2px_12px_rgba(220,38,38,0.22)] hover:shadow-[0_4px_18px_rgba(220,38,38,0.3)]
+                hover:-translate-y-px transition-all duration-200 shrink-0 no-underline">
+              <Plus size={13} />
+              Report {viewMode === "lost" ? "Lost" : "Found"}
+            </Link>
+          </div>
+
+          {/* Filter panel — date range only */}
+          {filterOpen && (
+            <div className="border-t border-black/6 bg-white px-5 sm:px-8 py-5">
+              <div className="max-w-5xl mx-auto flex gap-4">
                 {["From", "To"].map((lbl) => (
-                  <div key={lbl} className="flex flex-col gap-1.5">
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">{lbl}</p>
-                    <input
-                      type="date"
-                      style={{ colorScheme: "light" }}
-                      className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-[13px] text-gray-700 outline-none focus:border-red-400 focus:ring-4 focus:ring-red-50 transition-all"
+                  <div key={lbl} className="flex flex-col gap-2">
+                    <p className="text-[10.5px] font-semibold text-black/28 uppercase tracking-[0.14em]">{lbl}</p>
+                    <input type="date"
+                      style={{ colorScheme: "light", fontFamily: "'DM Sans', sans-serif" }}
+                      className="bf-date bg-black/[0.03] border border-black/8
+                        hover:border-black/14 rounded-xl px-3 py-2
+                        text-[13px] text-[#0f0f0f] outline-none transition-all duration-200"
                     />
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Main content ── */}
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
-
-        {/* Results count + clear */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-[13px] text-gray-400">
-            <span className="text-gray-800 font-semibold">{filteredItems.length}</span>{" "}
-            {viewMode} {filteredItems.length === 1 ? "item" : "items"} found
-          </p>
-          {selectedCategory !== "All" && (
-            <button
-              onClick={() => setSelectedCategory("All")}
-              className="flex items-center gap-1.5 text-[12px] text-red-500 hover:text-red-600 font-medium transition-colors"
-            >
-              <X size={12} /> Clear filter
-            </button>
           )}
         </div>
 
-        {/* Carousel or empty state */}
-        {filteredItems.length > 0 ? (
-          <ItemCarousel items={filteredItems} formatDate={formatDate} />
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-5">
-              <Search className="w-6 h-6 text-red-400" strokeWidth={1.5} />
-            </div>
-            <h3 className="text-[18px] font-bold text-gray-800 mb-2">No {viewMode} items found</h3>
-            <p className="text-[13.5px] text-gray-400 mb-7 max-w-xs">Try adjusting your search or filters to find what you're looking for.</p>
-            <Link
-              href={viewMode === "lost" ? "/report-lost" : "/report-found"}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[13.5px] font-semibold transition-colors shadow-sm"
-            >
-              <Plus size={15} />
-              Report a {viewMode === "lost" ? "Lost" : "Found"} Item
-            </Link>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+        {/* ── CONTENT ── */}
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10">
 
-export default LostAndFoundPage;
+          {/* Results bar */}
+          <div className="flex items-center justify-between mb-7">
+            <p className="text-[13px] text-gray-700">
+              <span className="text-[#0f0f0f] font-semibold"
+                style={{ fontFamily: "'Syne', sans-serif" }}>{filteredItems.length}</span>{" "}
+              {viewMode} {filteredItems.length === 1 ? "item" : "items"}
+            </p>
+          </div>
+
+          {filteredItems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredItems.map((item, i) => (
+                <ItemCard key={item.id} item={item} formatDate={formatDate} index={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="relative mb-7">
+                <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-100
+                  flex items-center justify-center">
+                  <Search className="w-7 h-7 text-red-400" strokeWidth={1.5} />
+                </div>
+                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-black/6 border border-black/8
+                  flex items-center justify-center">
+                  <X size={9} className="text-black/30" />
+                </div>
+              </div>
+
+              <h3 className="text-[20px] font-extrabold text-[#0f0f0f] mb-2 tracking-tight"
+                style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.02em' }}>
+                No {viewMode} items found
+              </h3>
+              <p className="text-[13.5px] font-light text-black/42 mb-8 max-w-xs leading-relaxed">
+                Try adjusting your search or filters, or be the first to file a report.
+              </p>
+
+              <Link href={viewMode === "lost" ? "/report-lost" : "/report-found"}
+                className="group flex items-center gap-2 px-6 py-3.5 rounded-xl
+                  bg-red-600 hover:bg-red-700 text-white text-[14px] font-semibold
+                  shadow-[0_4px_20px_rgba(220,38,38,0.22)] hover:shadow-[0_8px_28px_rgba(220,38,38,0.32)]
+                  hover:-translate-y-0.5 transition-all duration-200 no-underline">
+                <Plus size={15} />
+                Report a {viewMode === "lost" ? "Lost" : "Found"} Item
+                <ChevronRight size={14} className="opacity-60 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+          )}
+        </div>
+
+        <div className="h-px bg-black/6 max-w-5xl mx-auto mb-0" />
+      </div>
+    </>
+  );
+}

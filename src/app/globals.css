@@ -9,6 +9,36 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --bg: #ffffff;
+  --bg-subtle: #f9f9f9;
+  --fg: #0f0f0f;
+  --fg-muted: rgba(15,15,15,0.5);
+  --fg-faint: rgba(15,15,15,0.36);
+  --border: rgba(0,0,0,0.07);
+  --border-mid: rgba(0,0,0,0.12);
+  --card-bg: #ffffff;
+  --card-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  --accent: #dc2626;
+  --accent-hover: #b91c1c;
+  --accent-bg: rgba(220,38,38,0.06);
+  --accent-border: rgba(220,38,38,0.15);
+}
+
+.dark {
+  --bg: #0a0a0a;
+  --bg-subtle: #111111;
+  --fg: #f0f0f0;
+  --fg-muted: rgba(240,240,240,0.5);
+  --fg-faint: rgba(240,240,240,0.32);
+  --border: rgba(255,255,255,0.08);
+  --border-mid: rgba(255,255,255,0.12);
+  --card-bg: #141414;
+  --card-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  --accent: #ef4444;
+  --accent-hover: #dc2626;
+  --accent-bg: rgba(239,68,68,0.1);
+  --accent-border: rgba(239,68,68,0.2);
 }
 
 /* Dark mode overrides */

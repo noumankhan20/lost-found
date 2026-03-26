@@ -3,6 +3,7 @@ import './globals.css';
 import Navigation from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ReduxProvider from "@/redux/provider"
+import {ThemeProvider} from 'next-themes';
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -20,13 +21,15 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <ReduxProvider>
         <Navigation />
         <main>{children}</main>
         </ReduxProvider>
         <Footer />
+         </ThemeProvider>
       </body>
     </html>
   );

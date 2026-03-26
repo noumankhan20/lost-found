@@ -34,7 +34,7 @@ export default function LoginPage() {
     try {
       const res = await login(form).unwrap();
       console.log(res);
-      router.push("/dashboard");
+      router.push("/profile");
     } catch (err) {
       console.error(err);
       alert(err?.data?.message || "Login failed");
