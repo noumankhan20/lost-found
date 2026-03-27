@@ -8,15 +8,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useSelector } from "react-redux";
 import { useGetAllFoundItemsQuery } from "@/redux/slices/foundItemApiSlice";
-
+import { useCreateClaimMutation } from "@/redux/slices/claimApiSlice";
 // ── Claim Modal ───────────────────────────────────────────────────────────────
 function ClaimModal({ item, onClose }) {
   const [step, setStep] = useState(1); // 1 = form, 2 = success
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
-    claimerName: "",
-    claimerEmail: "",
     itemName: "",
     description: "",
     lastSeenLocation: "",
@@ -24,12 +23,11 @@ function ClaimModal({ item, onClose }) {
     additionalNote: "",
   });
   const [errors, setErrors] = useState({});
+  const [createClaim] = useCreateClaimMutation();
+  const { user } = useSelector((state) => state.auth);
 
   const validate = () => {
     const e = {};
-    if (!form.claimerName.trim()) e.claimerName = "Your name is required";
-    if (!form.claimerEmail.trim()) e.claimerEmail = "Your email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.claimerEmail)) e.claimerEmail = "Enter a valid email";
     if (!form.itemName.trim()) e.itemName = "Item name is required";
     if (!form.description.trim()) e.description = "Description is required";
     if (!form.lastSeenLocation.trim()) e.lastSeenLocation = "Last seen location is required";
@@ -44,12 +42,30 @@ function ClaimModal({ item, onClose }) {
 
   const handleSubmit = async () => {
     const e = validate();
-    if (Object.keys(e).length > 0) { setErrors(e); return; }
+    if (Object.keys(e).length > 0) {
+      setErrors(e);
+      return;
+    }
+
     setIsSubmitting(true);
-    // TODO: wire up your API call here
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsSubmitting(false);
-    setStep(2);
+
+    try {
+      await createClaim({
+        itemId: item._id,
+        itemName: form.itemName,
+        description: form.description,
+        lastSeenLocation: form.lastSeenLocation,
+        lastSeenDate: form.lastSeenDate,
+        additionalNote: form.additionalNote,
+      }).unwrap();
+
+      setStep(2); // success screen
+    } catch (err) {
+      console.error("Claim failed:", err);
+      alert(err?.data?.message || "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Lock body scroll
@@ -68,7 +84,7 @@ function ClaimModal({ item, onClose }) {
   const inputBase = `w-full px-4 py-3 rounded-xl bg-black/[0.03] border text-[13.5px] text-[#0f0f0f]
     outline-none transition-all duration-200 hover:border-black/14 placeholder:text-black/25`;
   const inputNormal = `${inputBase} border-black/8 focus:border-red-400/60 focus:shadow-[0_0_0_3px_rgba(220,38,38,0.07)]`;
-  const inputError  = `${inputBase} border-red-400 bg-red-50/40 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)]`;
+  const inputError = `${inputBase} border-red-400 bg-red-50/40 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)]`;
 
   return (
     <div
@@ -146,41 +162,6 @@ function ClaimModal({ item, onClose }) {
                   <p className="text-[13px] font-bold text-[#0f0f0f]" style={{ fontFamily: "'Syne', sans-serif" }}>
                     {item?.itemName}
                   </p>
-                </div>
-              </div>
-
-              {/* Section: Your info */}
-              <div>
-                <p className="text-[10.5px] font-semibold text-gray-700 uppercase tracking-[0.14em] mb-2.5">
-                  Your Information
-                </p>
-                <div className="space-y-3">
-                  <div>
-                    <input
-                      type="text"
-                      placeholder="Your full name"
-                      value={form.claimerName}
-                      onChange={(e) => handleChange("claimerName", e.target.value)}
-                      className={errors.claimerName ? inputError : inputNormal}
-                      style={{ fontFamily: "'DM Sans', sans-serif" }}
-                    />
-                    {errors.claimerName && (
-                      <p className="text-[11px] text-red-500 mt-1 ml-1">{errors.claimerName}</p>
-                    )}
-                  </div>
-                  <div>
-                    <input
-                      type="email"
-                      placeholder="Your email address"
-                      value={form.claimerEmail}
-                      onChange={(e) => handleChange("claimerEmail", e.target.value)}
-                      className={errors.claimerEmail ? inputError : inputNormal}
-                      style={{ fontFamily: "'DM Sans', sans-serif" }}
-                    />
-                    {errors.claimerEmail && (
-                      <p className="text-[11px] text-red-500 mt-1 ml-1">{errors.claimerEmail}</p>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -492,9 +473,8 @@ export default function FoundItemDetailPage() {
               {images.map((_, i) => (
                 <button key={i}
                   onClick={(e) => { e.stopPropagation(); setActiveImage(i); }}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-                    i === activeImage ? "bg-white scale-125" : "bg-white/40"
-                  }`}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${i === activeImage ? "bg-white scale-125" : "bg-white/40"
+                    }`}
                 />
               ))}
             </div>
@@ -507,7 +487,7 @@ export default function FoundItemDetailPage() {
         {/* ── BACK NAV ── */}
         <div className="bg-white border-b border-black/6">
           <div className="max-w-5xl mx-auto px-5 sm:px-8 py-4">
-            <Link href="/lost-and-found"
+            <Link href="/browse-items"
               className="inline-flex items-center gap-2 text-[13px] font-semibold text-black/40
                 hover:text-emerald-600 transition-colors no-underline group">
               <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
