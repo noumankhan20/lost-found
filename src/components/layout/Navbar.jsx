@@ -214,7 +214,7 @@ export default function Navigation() {
               </button>
             )}
 
-            <Link href="/sign-up" className="nav-cta">Sign Up</Link>
+            <Link href="/login" className="nav-cta">Login</Link>
           </div>
 
           <button className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">

@@ -3,7 +3,8 @@ import './globals.css';
 import Navigation from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ReduxProvider from "@/redux/provider"
-import {ThemeProvider} from 'next-themes';
+import { ThemeProvider } from 'next-themes';
+import AuthProvider from "./AuthProvider";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -23,13 +24,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <ReduxProvider>
-        <Navigation />
-        <main>{children}</main>
-        </ReduxProvider>
-        <Footer />
-         </ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ReduxProvider>
+            <AuthProvider>
+              <Navigation />
+              <main>{children}</main>
+            </AuthProvider>
+          </ReduxProvider>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

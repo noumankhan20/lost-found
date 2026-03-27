@@ -151,7 +151,7 @@ function ClaimModal({ item, onClose }) {
 
               {/* Section: Your info */}
               <div>
-                <p className="text-[10.5px] font-semibold text-black/28 uppercase tracking-[0.14em] mb-2.5">
+                <p className="text-[10.5px] font-semibold text-gray-700 uppercase tracking-[0.14em] mb-2.5">
                   Your Information
                 </p>
                 <div className="space-y-3">
@@ -186,7 +186,7 @@ function ClaimModal({ item, onClose }) {
 
               {/* Section: Item details */}
               <div>
-                <p className="text-[10.5px] font-semibold text-black/28 uppercase tracking-[0.14em] mb-2.5">
+                <p className="text-[10.5px] font-semibold text-gray-700 uppercase tracking-[0.14em] mb-2.5">
                   Prove Ownership
                 </p>
                 <div className="space-y-3">
@@ -230,7 +230,7 @@ function ClaimModal({ item, onClose }) {
                     )}
                   </div>
                   <div>
-                    <label className="block text-[11px] text-black/35 font-medium mb-1.5 ml-1">
+                    <label className="block text-[11px] text-gray-700 font-medium mb-1.5 ml-1">
                       When did you last have it?
                     </label>
                     <input
@@ -417,7 +417,7 @@ export default function FoundItemDetailPage() {
           style={{ fontFamily: "'Syne', sans-serif" }}>
           Item not found
         </p>
-        <Link href="/lost-and-found"
+        <Link href="/browse-items"
           className="text-[13px] text-emerald-600 font-semibold hover:underline">
           ← Back to Lost &amp; Found
         </Link>
@@ -648,7 +648,7 @@ export default function FoundItemDetailPage() {
 
               {/* Reporter card */}
               <div>
-                <p className="text-[10.5px] font-semibold text-black/28 uppercase tracking-[0.14em] mb-3">
+                <p className="text-[10.5px] font-semibold text-gray-700 uppercase tracking-[0.14em] mb-3">
                   Found By
                 </p>
                 <div className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-black/7
@@ -668,7 +668,7 @@ export default function FoundItemDetailPage() {
                     <p className="text-[12.5px] text-black/40 truncate">{item.user?.email ?? "—"}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <p className="text-[10px] text-black/28 uppercase tracking-[0.1em] font-semibold">
+                    <p className="text-[10px] text-gray-700 uppercase tracking-[0.1em] font-semibold">
                       Member since
                     </p>
                     <p className="text-[12px] text-black/50 font-medium">
@@ -690,7 +690,7 @@ export default function FoundItemDetailPage() {
                   <Package size={15} />
                   Claim This Item
                 </button>
-                <Link href="/lost-and-found"
+                <Link href="/browse-items"
                   className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl
                     bg-black/[0.04] hover:bg-black/[0.07] text-[#0f0f0f] text-[14px] font-semibold
                     transition-all duration-200 no-underline">
