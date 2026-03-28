@@ -32,7 +32,7 @@ export default function Navigation() {
 
         /* ✅ Use CSS variables for background — responds to .dark on <html> */
         .nav-root.top {
-          background: color-mix(in srgb, var(--bg) 75%, transparent);
+          background: color-mix(in srgb, var(--bg) 95%, transparent);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
           border-bottom: 1px solid transparent;
