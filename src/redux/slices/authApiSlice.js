@@ -55,6 +55,21 @@ export const authApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["User"], // 🔥 refresh getMe automatically
     }),
+    forgotPassword: builder.mutation({
+      query: (data) => ({
+        url: "/user/forgot-password",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    resetPassword: builder.mutation({
+      query: (data) => ({
+        url: "/user/reset-password",
+        method: "PUT",
+        body: data,
+      }),
+    }),
 
   }),
 });
@@ -66,4 +81,6 @@ export const {
   useGetMeQuery,
   useGetMyItemsQuery,
   useUpdateProfileMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation
 } = authApi;

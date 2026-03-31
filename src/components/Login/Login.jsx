@@ -336,13 +336,6 @@ export default function LoginPage() {
 
               </form>
 
-              {/* Divider */}
-              <div className="flex items-center gap-3 my-6">
-                <div className="flex-1 h-px bg-gray-100" />
-                <span className="text-[11.5px] text-gray-300 font-semibold px-1">or</span>
-                <div className="flex-1 h-px bg-gray-100" />
-              </div>
-
               {/* Footer */}
               <p className="text-center text-[11.5px] text-gray-300 mt-7 leading-relaxed">
                 Protected by reCAPTCHA ·{" "}

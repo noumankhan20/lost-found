@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useSendMessageMutation } from "@/redux/slices/chatApiSlice";
 import { useRouter } from "next/navigation";
+
 // ── Icons (inline SVG — no extra deps) ───────────────────────────────────────
 const SendIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -35,8 +36,10 @@ const ChevronDownIcon = () => (
 // ── Typing indicator ──────────────────────────────────────────────────────────
 function TypingIndicator() {
   return (
-    <div className="cb-typing">
-      <span /><span /><span />
+    <div className="flex items-center gap-1 px-3.5 py-3">
+      <span className="w-1.5 h-1.5 rounded-full bg-black/20 animate-[cbDot_1.1s_ease-in-out_0s_infinite]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-black/20 animate-[cbDot_1.1s_ease-in-out_0.18s_infinite]" />
+      <span className="w-1.5 h-1.5 rounded-full bg-black/20 animate-[cbDot_1.1s_ease-in-out_0.36s_infinite]" />
     </div>
   );
 }
@@ -52,8 +55,8 @@ export default function Chatbot() {
   const [sendMessage, { isLoading }] = useSendMessageMutation();
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
-  const chatRef = useRef(null);
   const router = useRouter();
+
   // Scroll to bottom whenever messages update
   useEffect(() => {
     if (open) {
@@ -85,22 +88,11 @@ export default function Chatbot() {
         intent: intent
       }).unwrap();
 
+      if (res.action === "go_to_report_lost") router.push("/report-lost");
+      if (res.action === "go_to_report_found") router.push("/report-found");
+      if (res.action === "go_to_browse_items") router.push("/browse-items");
+      if (res.intent) setIntent(res.intent);
 
-      if (res.action === "go_to_report_lost") {
-        router.push("/report-lost");
-      }
-
-      if (res.action === "go_to_report_found") {
-        router.push("/report-found");
-      }
-
-      // if (res.action === "status") {
-      //   router.push("/my-claims"); 
-      // }
-
-      if (res.intent) {
-        setIntent(res.intent);
-      }
       setMessages((prev) => [...prev, {
         sender: "bot", text: res.reply, type: res.type,
         items: res.items || [], action: res.action
@@ -120,368 +112,76 @@ export default function Chatbot() {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Syne:wght@600;700&display=swap');
-
-        /* ── Widget shell ── */
-        .cb-shell {
-          position: fixed;
-          bottom: 24px;
-          right: 24px;
-          z-index: 9999;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 12px;
-          font-family: 'DM Sans', sans-serif;
-        }
-
-        /* ── FAB trigger ── */
-        .cb-fab {
-          width: 52px;
-          height: 52px;
-          border-radius: 16px;
-          background: #C0001A;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #fff;
-          box-shadow: 0 4px 20px rgba(192,0,26,0.32), 0 1px 4px rgba(0,0,0,0.12);
-          transition: box-shadow 0.2s, transform 0.15s;
-          position: relative;
-          flex-shrink: 0;
-        }
-        .cb-fab:hover {
-          box-shadow: 0 6px 28px rgba(192,0,26,0.42), 0 2px 6px rgba(0,0,0,0.14);
-          transform: translateY(-1px);
-        }
-        .cb-fab:active { transform: translateY(0); }
-
-        /* Unread dot */
-        .cb-unread {
-          position: absolute;
-          top: -3px; right: -3px;
-          width: 10px; height: 10px;
-          background: #111;
-          border: 2px solid #fff;
-          border-radius: 50%;
-        }
-
-        /* ── Chat panel ── */
-        .cb-panel {
-          width: 340px;
-          background: #ffffff;
-          border-radius: 20px;
-          border: 1px solid rgba(0,0,0,0.08);
-          box-shadow: 0 8px 40px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          /* Smooth open/close */
-          transform-origin: bottom right;
-          transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-        .cb-panel.hidden {
-          opacity: 0;
-          transform: scale(0.94) translateY(8px);
-          pointer-events: none;
-        }
-        .cb-panel.visible {
-          opacity: 1;
-          transform: scale(1) translateY(0);
-          pointer-events: all;
-        }
-
-        /* ── Header ── */
-        .cb-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px 18px 14px;
-          background: #C0001A;
-          flex-shrink: 0;
-        }
-        .cb-header-left {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .cb-avatar {
-          width: 34px; height: 34px;
-          border-radius: 10px;
-          background: rgba(255,255,255,0.15);
-          border: 1px solid rgba(255,255,255,0.2);
-          display: flex; align-items: center; justify-content: center;
-          color: #fff;
-          flex-shrink: 0;
-        }
-        .cb-header-text {}
-        .cb-header-name {
-          font-family: 'Syne', sans-serif;
-          font-size: 13.5px;
-          font-weight: 700;
-          color: #fff;
-          letter-spacing: -0.01em;
-          line-height: 1.2;
-        }
-        .cb-header-status {
-          display: flex; align-items: center; gap: 5px;
-          margin-top: 1px;
-        }
-        .cb-status-dot {
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: #4ade80;
-          flex-shrink: 0;
-        }
-        .cb-header-sub {
-          font-size: 10.5px;
-          color: rgba(255,255,255,0.7);
-          font-weight: 400;
-          letter-spacing: 0.01em;
-        }
-        .cb-close-btn {
-          width: 28px; height: 28px;
-          border-radius: 8px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.16);
-          cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          color: rgba(255,255,255,0.85);
-          transition: background 0.15s;
-          flex-shrink: 0;
-        }
-        .cb-close-btn:hover { background: rgba(255,255,255,0.2); }
-
-        /* ── Messages ── */
-        .cb-messages {
-          flex: 1;
-          overflow-y: auto;
-          padding: 16px 14px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          min-height: 0;
-          height: 300px;
-          background: #fafafa;
-        }
-        .cb-messages::-webkit-scrollbar { width: 3px; }
-        .cb-messages::-webkit-scrollbar-track { background: transparent; }
-        .cb-messages::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
-
-        /* Message row */
-        .cb-row {
-          display: flex;
-          gap: 8px;
-        }
-        .cb-row.user { flex-direction: row-reverse; }
-
-        /* Bot avatar dot */
-        .cb-bot-mark {
-          width: 24px; height: 24px;
-          border-radius: 8px;
-          background: #fff1f2;
-          border: 1px solid rgba(192,0,26,0.12);
-          display: flex; align-items: center; justify-content: center;
-          color: #C0001A;
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-
-        /* Bubble */
-        .cb-bubble {
-          max-width: 230px;
-          padding: 10px 13px;
-          border-radius: 14px;
-          font-size: 13.5px;
-          line-height: 1.55;
-          font-weight: 400;
-          word-break: break-word;
-        }
-        .cb-bubble.bot {
-          background: #ffffff;
-          color: #111;
-          border: 1px solid rgba(0,0,0,0.08);
-          border-bottom-left-radius: 4px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        }
-        .cb-bubble.user {
-          background: #C0001A;
-          color: #fff;
-          border-bottom-right-radius: 4px;
-        }
-
-        /* Typing dots */
-        .cb-typing {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          padding: 12px 14px;
-        }
-        .cb-typing span {
-          width: 5px; height: 5px;
-          border-radius: 50%;
-          background: rgba(0,0,0,0.2);
-          display: inline-block;
-        }
-        .cb-typing span:nth-child(1) { animation: cbDot 1.1s ease-in-out 0s infinite; }
-        .cb-typing span:nth-child(2) { animation: cbDot 1.1s ease-in-out 0.18s infinite; }
-        .cb-typing span:nth-child(3) { animation: cbDot 1.1s ease-in-out 0.36s infinite; }
+        .cb-font { font-family: 'DM Sans', sans-serif; }
+        .cb-font-syne { font-family: 'Syne', sans-serif; }
         @keyframes cbDot {
           0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
           30%            { transform: translateY(-4px); opacity: 1; }
         }
-
-        /* Typing bubble wrapper */
-        .cb-typing-wrap {
-          background: #fff;
-          border: 1px solid rgba(0,0,0,0.08);
-          border-radius: 14px;
-          border-bottom-left-radius: 4px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        }
-
-        /* ── Divider line above input ── */
-        .cb-divider {
-          height: 1px;
-          background: rgba(0,0,0,0.06);
-          flex-shrink: 0;
-        }
-
-        /* ── Input row ── */
-        .cb-input-row {
-          display: flex;
-          align-items: flex-end;
-          gap: 8px;
-          padding: 12px 14px;
-          background: #fff;
-          flex-shrink: 0;
-        }
-        .cb-textarea-wrap {
-          flex: 1;
-          background: #f5f5f5;
-          border: 1px solid rgba(0,0,0,0.08);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          transition: border-color 0.15s;
-          overflow: hidden;
-        }
-        .cb-textarea-wrap:focus-within {
-          border-color: rgba(192,0,26,0.3);
-          background: #fff;
-        }
-        .cb-textarea {
-          flex: 1;
-          resize: none;
-          border: none;
-          outline: none;
-          background: transparent;
-          font-size: 13.5px;
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 400;
-          color: #111;
-          padding: 9px 12px;
-          line-height: 1.45;
-          min-height: 36px;
-          max-height: 90px;
-        }
-        .cb-textarea::placeholder { color: rgba(0,0,0,0.3); }
-        .cb-send {
-          width: 36px; height: 36px;
-          border-radius: 10px;
-          background: #C0001A;
-          border: none;
-          cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          color: #fff;
-          flex-shrink: 0;
-          transition: background 0.15s, box-shadow 0.15s;
-          box-shadow: 0 2px 8px rgba(192,0,26,0.25);
-        }
-        .cb-send:hover:not(:disabled) {
-          background: #a0001a;
-          box-shadow: 0 3px 12px rgba(192,0,26,0.35);
-        }
-        .cb-send:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-          box-shadow: none;
-        }
-
-        /* ── Footer branding ── */
-        .cb-footer {
-          padding: 6px 14px 10px;
-          text-align: center;
-          background: #fff;
-        }
-        .cb-footer-text {
-          font-size: 10.5px;
-          color: rgba(0,0,0,0.22);
-          letter-spacing: 0.04em;
-        }
-        .cb-footer-text span {
-          color: #C0001A;
-          font-weight: 600;
-        }
-
-        @media (max-width: 400px) {
-          .cb-panel { width: calc(100vw - 32px); }
-          .cb-shell { bottom: 16px; right: 16px; }
-        }
       `}</style>
 
-      <div className="cb-shell">
+      <div className="cb-font fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3">
 
         {/* ── Chat panel ── */}
-        <div className={`cb-panel ${open ? "visible" : "hidden"}`} ref={chatRef}>
+        <div
+          className={`w-[340px] bg-white rounded-[20px] border border-black/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.12),0_1px_4px_rgba(0,0,0,0.06)] flex flex-col origin-bottom-right transition-all duration-200
+            ${open ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" : "opacity-0 scale-95 translate-y-2 pointer-events-none"}
+            max-[400px]:w-[calc(100vw-32px)]`}
+        >
 
           {/* Header */}
-          <div className="cb-header">
-            <div className="cb-header-left">
-              <div className="cb-avatar">
+          <div className="flex items-center justify-between px-[18px] py-4 bg-[#C0001A] shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="w-[34px] h-[34px] rounded-[10px] bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
                 <BotIcon />
               </div>
-              <div className="cb-header-text">
-                <p className="cb-header-name">FindIt Assistant</p>
-                <div className="cb-header-status">
-                  <div className="cb-status-dot" />
-                  <span className="cb-header-sub">Online · here to help</span>
+              <div>
+                <p className="cb-font-syne text-[13.5px] font-bold text-white tracking-[-0.01em] leading-[1.2]">FindIt Assistant</p>
+                <div className="flex items-center gap-1.5 mt-[1px]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                  <span className="text-[10.5px] text-white/70 font-normal tracking-[0.01em]">Online · here to help</span>
                 </div>
               </div>
             </div>
-            <button className="cb-close-btn" onClick={() => setOpen(false)} aria-label="Close chat">
+            <button
+              className="w-7 h-7 rounded-lg bg-white/[0.12] border border-white/[0.16] cursor-pointer flex items-center justify-center text-white/85 hover:bg-white/20 transition-colors shrink-0"
+              onClick={() => setOpen(false)}
+              aria-label="Close chat"
+            >
               <ChevronDownIcon />
             </button>
           </div>
 
           {/* Messages */}
-          <div className="cb-messages">
+          <div className="overflow-y-auto h-[300px] min-h-[300px] max-h-[300px] p-4 flex flex-col gap-2.5 bg-[#fafafa] [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/10 [&::-webkit-scrollbar-thumb]:rounded-full">
             {messages.map((msg, i) => (
-              <div key={i} className={`cb-row ${msg.sender}`}>
+              <div key={i} className={`flex gap-2 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
                 {msg.sender === "bot" && (
-                  <div className="cb-bot-mark">
+                  <div className="w-6 h-6 rounded-lg bg-red-50 border border-[#C0001A]/[0.12] flex items-center justify-center text-[#C0001A] shrink-0 mt-0.5">
                     <BotIcon />
                   </div>
                 )}
-                <div className={`cb-bubble ${msg.sender}`}>
+                <div
+                  className={`max-w-[230px] px-[13px] py-2.5 rounded-[14px] text-[13.5px] leading-[1.55] font-normal break-words
+                    ${msg.sender === "bot"
+                      ? "bg-white text-[#111] border border-black/[0.08] rounded-bl-[4px] shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                      : "bg-[#C0001A] text-white rounded-br-[4px]"
+                    }`}
+                >
                   <div>{msg.text}</div>
 
                   {msg.type === "list" && msg.items?.length > 0 && (
-                    <ul style={{ marginTop: "6px", paddingLeft: "16px" }}>
+                    <ul className="mt-1.5 pl-4 list-disc">
                       {msg.items.map((item, idx) => (
-                        <li key={idx} style={{ marginBottom: "4px" }}>
-                          {item}
-                        </li>
+                        <li key={idx} className="mb-1">{item}</li>
                       ))}
                     </ul>
                   )}
+
                   {msg.sender === "bot" && msg.type === "action" && msg.action === "none" && (
                     <button
                       onClick={() => {
                         const isReport = msg.intent === "report";
-                        const isFoundReport = msg.intent === "found_report";
-
                         const route = isReport ? "/report-lost" : "/report-found";
                         const replyText = isReport
                           ? "Taking you to Report Lost Item page!"
@@ -492,28 +192,24 @@ export default function Chatbot() {
                           { sender: "user", text: "Yes, take me there" },
                           { sender: "bot", text: replyText, type: "action", items: [], action: "done" }
                         ]);
-
                         router.push(route);
                       }}
-                      style={{
-                        marginTop: "8px", background: "#C0001A", color: "#fff",
-                        border: "none", padding: "6px 10px", borderRadius: "8px",
-                        cursor: "pointer", fontSize: "12px"
-                      }}
+                      className="mt-2 bg-[#C0001A] text-white border-none px-2.5 py-1.5 rounded-lg cursor-pointer text-xs"
                     >
                       Yes, take me there
                     </button>
                   )}
                 </div>
               </div>
-
             ))}
 
             {/* Typing indicator */}
             {isLoading && (
-              <div className="cb-row bot">
-                <div className="cb-bot-mark"><BotIcon /></div>
-                <div className="cb-typing-wrap">
+              <div className="flex gap-2">
+                <div className="w-6 h-6 rounded-lg bg-red-50 border border-[#C0001A]/[0.12] flex items-center justify-center text-[#C0001A] shrink-0 mt-0.5">
+                  <BotIcon />
+                </div>
+                <div className="bg-white border border-black/[0.08] rounded-[14px] rounded-bl-[4px] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                   <TypingIndicator />
                 </div>
               </div>
@@ -523,14 +219,14 @@ export default function Chatbot() {
           </div>
 
           {/* Divider */}
-          <div className="cb-divider" />
+          <div className="h-px bg-black/[0.06] shrink-0" />
 
           {/* Input */}
-          <div className="cb-input-row">
-            <div className="cb-textarea-wrap">
+          <div className="flex items-end gap-2 px-3.5 py-3 bg-white shrink-0">
+            <div className="flex-1 bg-[#f5f5f5] border border-black/[0.08] rounded-xl flex items-center overflow-hidden focus-within:border-[#C0001A]/30 focus-within:bg-white transition-all">
               <textarea
                 ref={inputRef}
-                className="cb-textarea"
+                className="cb-font flex-1 resize-none border-none outline-none bg-transparent text-[13.5px] font-normal text-[#111] px-3 py-[9px] leading-[1.45] min-h-9 max-h-[90px] placeholder:text-black/30"
                 rows={1}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -539,7 +235,7 @@ export default function Chatbot() {
               />
             </div>
             <button
-              className="cb-send"
+              className="w-9 h-9 rounded-[10px] bg-[#C0001A] border-none cursor-pointer flex items-center justify-center text-white shrink-0 shadow-[0_2px_8px_rgba(192,0,26,0.25)] hover:bg-[#a0001a] hover:shadow-[0_3px_12px_rgba(192,0,26,0.35)] disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none transition-all"
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
               aria-label="Send message"
@@ -549,22 +245,26 @@ export default function Chatbot() {
           </div>
 
           {/* Footer */}
-          <div className="cb-footer">
-            <p className="cb-footer-text">Powered by <span>FindIt</span></p>
+          <div className="px-3.5 pb-2.5 pt-1.5 text-center bg-white">
+            <p className="text-[10.5px] text-black/[0.22] tracking-[0.04em]">
+              Powered by <span className="text-[#C0001A] font-semibold">FindIt</span>
+            </p>
           </div>
         </div>
 
         {/* ── FAB ── */}
         <button
-          className="cb-fab"
+          className="w-[52px] h-[52px] rounded-2xl bg-[#C0001A] border-none cursor-pointer flex items-center justify-center text-white shadow-[0_4px_20px_rgba(192,0,26,0.32),0_1px_4px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_28px_rgba(192,0,26,0.42),0_2px_6px_rgba(0,0,0,0.14)] hover:-translate-y-px active:translate-y-0 transition-all relative shrink-0"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close chat" : "Open chat"}
         >
           {open ? <CloseIcon /> : <BotIcon />}
-          {unread && <span className="cb-unread" />}
+          {unread && (
+            <span className="absolute -top-[3px] -right-[3px] w-2.5 h-2.5 bg-[#111] border-2 border-white rounded-full" />
+          )}
         </button>
 
-      </div >
+      </div>
     </>
   );
 }

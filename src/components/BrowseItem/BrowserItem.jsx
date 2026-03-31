@@ -324,7 +324,7 @@ export default function LostAndFoundPage() {
 
         {/* ── STICKY TOOLBAR ── */}
         {/* FIX: added isolate so z-index stacking context doesn't bleed over card links */}
-        <div className="sticky top-0 z-30  bg-white/95 backdrop-blur-xl border-b border-black/6
+        <div className="sticky top-0 z-30 isolate bg-white/95 backdrop-blur-xl border-b border-black/6
           shadow-[0_1px_12px_rgba(0,0,0,0.05)]">
           <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 
