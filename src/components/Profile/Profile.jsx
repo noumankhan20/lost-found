@@ -13,7 +13,8 @@ import {
   useLogoutMutation,
 } from "@/redux/slices/authApiSlice";
 import { useGetMyClaimsQuery, useApproveClaimMutation, useRejectClaimMutation, useGetClaimsMadeQuery } from "@/redux/slices/claimApiSlice";
-
+import { useDispatch } from "react-redux";
+import { apiSlice } from "@/redux/slices/apiSlice";
 // ── Animated counter ──────────────────────────────────────────────────────────
 function CountUp({ target, duration = 1200 }) {
   const [val, setVal] = useState(0);
@@ -164,8 +165,8 @@ function ActivityItem({ item, formatDate, index }) {
 function MyClaimItem({ claim, formatDate, index }) {
   const statusConfig = {
     approved: { dot: "bg-emerald-500", badge: "bg-emerald-50 border-emerald-100 text-emerald-700", label: "Approved" },
-    rejected: { dot: "bg-red-500",     badge: "bg-red-50 border-red-100 text-red-700",           label: "Rejected"  },
-    pending:  { dot: "bg-amber-400",   badge: "bg-amber-50 border-amber-100 text-amber-700",     label: "Pending"   },
+    rejected: { dot: "bg-red-500", badge: "bg-red-50 border-red-100 text-red-700", label: "Rejected" },
+    pending: { dot: "bg-amber-400", badge: "bg-amber-50 border-amber-100 text-amber-700", label: "Pending" },
   };
   const s = statusConfig[claim.status] || statusConfig.pending;
 
@@ -265,7 +266,7 @@ function ErrorState({ message, onRetry }) {
 // ── Main profile page ─────────────────────────────────────────────────────────
 export default function ProfilePage() {
   const router = useRouter();
-
+  const dispatch = useDispatch();
   // ── Tab state for the top right card ──
   const [activeTab, setActiveTab] = useState("reports"); // "reports" | "claims"
 
@@ -338,8 +339,12 @@ export default function ProfilePage() {
   };
 
   const handleLogout = async () => {
-    try { await logout().unwrap(); router.replace("/login"); }
-    catch { router.replace("/login"); }
+    try {
+      await logout().unwrap();
+    } catch (err) { }
+
+    dispatch(apiSlice.util.resetApiState()); // 💥 THIS IS THE MAGIC LINE
+    router.replace("/login");
   };
 
   const handleApprove = async (id) => {
@@ -357,9 +362,9 @@ export default function ProfilePage() {
   const myClaims = myClaimsData?.data || [];
 
   const stats = [
-    { label: "Reported Lost", val: lostCount,      icon: Package, color: "text-red-600",     bg: "bg-red-50",     border: "border-red-100"     },
-    { label: "Items Found",   val: foundCount,      icon: Search,  color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
-    { label: "Total Reports", val: myItems.length,  icon: Star,    color: "text-amber-500",   bg: "bg-amber-50",   border: "border-amber-100"   },
+    { label: "Reported Lost", val: lostCount, icon: Package, color: "text-red-600", bg: "bg-red-50", border: "border-red-100" },
+    { label: "Items Found", val: foundCount, icon: Search, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+    { label: "Total Reports", val: myItems.length, icon: Star, color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-100" },
   ];
 
   const formatDate = (d) => {
@@ -718,9 +723,9 @@ export default function ProfilePage() {
               {/* Quick actions */}
               <div className="flex flex-col gap-2 anim-fadeup" style={{ animationDelay: "220ms" }}>
                 {[
-                  { label: "Report a Lost Item",   href: "/report-lost",   color: "text-red-600",     hoverBg: "hover:bg-red-50 hover:border-red-200",           icon: Package },
-                  { label: "Report a Found Item",  href: "/report-found",  color: "text-emerald-600", hoverBg: "hover:bg-emerald-50 hover:border-emerald-200",   icon: Search  },
-                  { label: "Browse Lost & Found",  href: "/browse-items",  color: "text-black/55",    hoverBg: "hover:bg-black/[0.025] hover:border-black/12",   icon: Star    },
+                  { label: "Report a Lost Item", href: "/report-lost", color: "text-red-600", hoverBg: "hover:bg-red-50 hover:border-red-200", icon: Package },
+                  { label: "Report a Found Item", href: "/report-found", color: "text-emerald-600", hoverBg: "hover:bg-emerald-50 hover:border-emerald-200", icon: Search },
+                  { label: "Browse Lost & Found", href: "/browse-items", color: "text-black/55", hoverBg: "hover:bg-black/[0.025] hover:border-black/12", icon: Star },
                 ].map(({ label, href, color, hoverBg, icon: Icon }) => (
                   <Link key={label} href={href} className={`quick-link ${hoverBg} group`}>
                     <div className="flex items-center gap-3">
@@ -1036,7 +1041,7 @@ export default function ProfilePage() {
                         <div className="flex items-center justify-between gap-3 flex-wrap">
                           <div className="flex items-center gap-1.5">
                             <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${claim.status === "approved" ? "bg-emerald-500" :
-                                claim.status === "rejected" ? "bg-red-500" : "bg-amber-400"
+                              claim.status === "rejected" ? "bg-red-500" : "bg-amber-400"
                               }`} />
                             <span className="text-[11.5px] text-black/38 capitalize font-medium">
                               {claim.status}

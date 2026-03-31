@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, Menu, X, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
-
+import { useGetMeQuery } from '@/redux/slices/authApiSlice';
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -16,6 +16,9 @@ export default function Navigation() {
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const { data, isLoading } = useGetMeQuery();
+  const user = data?.user;
 
   return (
     <>
@@ -214,7 +217,11 @@ export default function Navigation() {
               </button>
             )}
 
-            <Link href="/login" className="nav-cta">Login</Link>
+            {isLoading ? null : user ? (
+              <Link href="/profile" className="nav-cta">Profile</Link>
+            ) : (
+              <Link href="/login" className="nav-cta">Login</Link>
+            )}
           </div>
 
           <button className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
