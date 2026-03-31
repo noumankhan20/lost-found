@@ -711,22 +711,129 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Quick actions */}
-              <div className="flex flex-col gap-2 anim-fadeup" style={{ animationDelay: "220ms" }}>
-                {[
-                  { label: "Report a Lost Item", href: "/report-lost", color: "text-red-600", hoverBg: "hover:bg-red-50 hover:border-red-200", icon: Package },
-                  { label: "Report a Found Item", href: "/report-found", color: "text-emerald-600", hoverBg: "hover:bg-emerald-50 hover:border-emerald-200", icon: Search },
-                  { label: "Browse Lost & Found", href: "/browse-items", color: "text-black/55", hoverBg: "hover:bg-black/[0.025] hover:border-black/12", icon: Star },
-                ].map(({ label, href, color, hoverBg, icon: Icon }) => (
-                  <Link key={label} href={href} className={`quick-link ${hoverBg} group`}>
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${color} opacity-70`} />
-                      <span className={`text-[13px] font-semibold ${color}`}>{label}</span>
+              {/* ══ INCOMING CLAIMS — moved to left column ══ */}
+              <div className="pf-card anim-fadeup" style={{ animationDelay: "220ms" }}>
+                <div className="pf-card-header" style={{ paddingBottom: "20px" }}>
+                  <div>
+                    <div className="flex items-center gap-2.5 mb-0.5">
+                      <h3 className="text-[13.5px] font-bold text-[#0f0f0f] tracking-[-0.01em]"
+                        style={{ fontFamily: "'Syne', sans-serif" }}>
+                        Incoming Claims
+                      </h3>
+                      {!claimsLoading && incomingClaims.length > 0 && (
+                        <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600
+                          text-[10.5px] font-bold border border-red-100">
+                          {incomingClaims.length} pending
+                        </span>
+                      )}
                     </div>
-                    <ChevronRight className={`w-3.5 h-3.5 ${color} opacity-40 group-hover:translate-x-0.5 transition-transform duration-150`} />
-                  </Link>
-                ))}
+                    <p className="text-[11px] text-black/30 mt-0.5">
+                      Review ownership claims on your found items
+                    </p>
+                  </div>
+                </div>
+
+                {claimsLoading && (
+                  <div className="px-5 py-4 flex flex-col gap-4">
+                    {[...Array(2)].map((_, i) => (
+                      <div key={i} className="flex flex-col gap-3 p-3 rounded-2xl bg-black/[0.02]">
+                        <div className="flex items-center justify-between">
+                          <Skeleton className="h-4 w-36" />
+                          <Skeleton className="h-6 w-16 rounded-full" />
+                        </div>
+                        <Skeleton className="h-3 w-28" />
+                        <div className="flex justify-end gap-2 mt-1">
+                          <Skeleton className="h-7 w-14 rounded-lg" />
+                          <Skeleton className="h-7 w-16 rounded-lg" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!claimsLoading && incomingClaims.length === 0 && (
+                  <div className="px-5 py-10 flex flex-col items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-black/[0.03] border border-black/6 flex items-center justify-center">
+                      <CheckCircle2 className="w-4.5 h-4.5 text-black/18" />
+                    </div>
+                    <p className="text-[12.5px] text-black/32 text-center font-medium">
+                      No pending claims right now
+                    </p>
+                    <p className="text-[11px] text-black/22 text-center max-w-[200px] leading-relaxed">
+                      Claims on items you found will appear here.
+                    </p>
+                  </div>
+                )}
+
+                {!claimsLoading && incomingClaims.length > 0 && (
+                  <div className="claims-scroll">
+                    {incomingClaims.map((claim, i) => (
+                      <div
+                        key={claim._id}
+                        className="claim-row"
+                        style={{ animation: `fadeUp 0.4s ease ${i * 55}ms both` }}
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-2.5">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-semibold text-[#0f0f0f] truncate"
+                              style={{ fontFamily: "'Syne', sans-serif" }}>
+                              {claim.item?.itemName || "Unnamed Item"}
+                            </p>
+                            <p className="text-[11.5px] text-black/40 mt-0.5">
+                              Claimed by{" "}
+                              <span className="font-semibold text-black/65">
+                                {claim.claimant?.name || "Unknown"}
+                              </span>
+                            </p>
+                          </div>
+                          <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10.5px] font-bold border
+                            ${claim.matchScore >= 85
+                              ? "bg-emerald-50 border-emerald-100 text-emerald-700"
+                              : claim.matchScore >= 60
+                                ? "bg-amber-50 border-amber-100 text-amber-700"
+                                : "bg-red-50 border-red-100 text-red-700"
+                            }`}>
+                            {claim.matchScore}%
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${claim.status === "approved" ? "bg-emerald-500" :
+                              claim.status === "rejected" ? "bg-red-500" : "bg-amber-400"
+                              }`} />
+                            <span className="text-[11px] text-black/38 capitalize font-medium">
+                              {claim.status}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleReject(claim._id)}
+                              className="px-3 py-1.5 rounded-lg text-[11.5px] font-semibold
+                                bg-white hover:bg-red-50 text-black/42 hover:text-red-600
+                                border border-black/8 hover:border-red-200
+                                transition-all duration-150 cursor-pointer">
+                              Reject
+                            </button>
+                            <button
+                              onClick={() => handleApprove(claim._id)}
+                              className="px-3 py-1.5 rounded-lg text-[11.5px] font-semibold
+                                bg-emerald-600 hover:bg-emerald-700 text-white
+                                shadow-[0_2px_8px_rgba(5,150,105,0.22)]
+                                hover:shadow-[0_4px_14px_rgba(5,150,105,0.3)]
+                                hover:-translate-y-px
+                                transition-all duration-150 cursor-pointer border-none">
+                              Approve
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+              {/* ══ END INCOMING CLAIMS ══ */}
+
             </div>
 
             {/* ── RIGHT COLUMN ── */}
@@ -943,127 +1050,34 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* ══════════ INCOMING CLAIMS ══════════ */}
+              {/* ══ QUICK ACTIONS — moved to right column bottom ══ */}
               <div className="pf-card anim-fadeup" style={{ animationDelay: "200ms" }}>
-                <div className="pf-card-header" style={{ paddingBottom: "20px" }}>
+                <div className="pf-card-header" style={{ paddingBottom: "16px" }}>
                   <div>
-                    <div className="flex items-center gap-2.5 mb-0.5">
-                      <h3 className="text-[15px] font-bold text-[#0f0f0f] tracking-[-0.015em]"
-                        style={{ fontFamily: "'Syne', sans-serif" }}>
-                        Incoming Claims
-                      </h3>
-                      {!claimsLoading && incomingClaims.length > 0 && (
-                        <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600
-                          text-[10.5px] font-bold border border-red-100">
-                          {incomingClaims.length} pending
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[11.5px] text-black/32">
-                      Review and respond to ownership claims on items you found
-                    </p>
+                    <h3 className="text-[15px] font-bold text-[#0f0f0f] tracking-[-0.015em]"
+                      style={{ fontFamily: "'Syne', sans-serif" }}>
+                      Quick Actions
+                    </h3>
+                    <p className="text-[11.5px] text-black/32 mt-0.5">Jump straight to what you need</p>
                   </div>
                 </div>
-
-                {claimsLoading && (
-                  <div className="px-6 py-5 flex flex-col gap-4">
-                    {[...Array(2)].map((_, i) => (
-                      <div key={i} className="flex flex-col gap-3 p-4 rounded-2xl bg-black/[0.02]">
-                        <div className="flex items-center justify-between">
-                          <Skeleton className="h-4 w-44" />
-                          <Skeleton className="h-6 w-20 rounded-full" />
-                        </div>
-                        <Skeleton className="h-3 w-32" />
-                        <div className="flex justify-end gap-2 mt-1">
-                          <Skeleton className="h-8 w-16 rounded-lg" />
-                          <Skeleton className="h-8 w-20 rounded-lg" />
-                        </div>
+                <div className="flex flex-col gap-2 px-5 pb-5">
+                  {[
+                    { label: "Report a Lost Item", href: "/report-lost", color: "text-red-600", hoverBg: "hover:bg-red-50 hover:border-red-200", icon: Package },
+                    { label: "Report a Found Item", href: "/report-found", color: "text-emerald-600", hoverBg: "hover:bg-emerald-50 hover:border-emerald-200", icon: Search },
+                    { label: "Browse Lost & Found", href: "/browse-items", color: "text-black/55", hoverBg: "hover:bg-black/[0.025] hover:border-black/12", icon: Star },
+                  ].map(({ label, href, color, hoverBg, icon: Icon }) => (
+                    <Link key={label} href={href} className={`quick-link ${hoverBg} group`}>
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-4 h-4 ${color} opacity-70`} />
+                        <span className={`text-[13px] font-semibold ${color}`}>{label}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                {!claimsLoading && incomingClaims.length === 0 && (
-                  <div className="px-6 py-12 flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-black/[0.03] border border-black/6 flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5 text-black/18" />
-                    </div>
-                    <p className="text-[13px] text-black/32 text-center font-medium">
-                      No pending claims right now
-                    </p>
-                    <p className="text-[11.5px] text-black/22 text-center max-w-xs leading-relaxed">
-                      When someone claims an item you reported found, it'll appear here for your review.
-                    </p>
-                  </div>
-                )}
-
-                {!claimsLoading && incomingClaims.length > 0 && (
-                  <div className="claims-scroll">
-                    {incomingClaims.map((claim, i) => (
-                      <div
-                        key={claim._id}
-                        className="claim-row"
-                        style={{ animation: `fadeUp 0.4s ease ${i * 55}ms both` }}
-                      >
-                        <div className="flex items-start justify-between gap-3 mb-2.5">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13.5px] font-semibold text-[#0f0f0f] truncate"
-                              style={{ fontFamily: "'Syne', sans-serif" }}>
-                              {claim.item?.itemName || "Unnamed Item"}
-                            </p>
-                            <p className="text-[12px] text-black/40 mt-0.5">
-                              Claimed by{" "}
-                              <span className="font-semibold text-black/65">
-                                {claim.claimant?.name || "Unknown"}
-                              </span>
-                            </p>
-                          </div>
-                          <span className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border
-                            ${claim.matchScore >= 85
-                              ? "bg-emerald-50 border-emerald-100 text-emerald-700"
-                              : claim.matchScore >= 60
-                                ? "bg-amber-50 border-amber-100 text-amber-700"
-                                : "bg-red-50 border-red-100 text-red-700"
-                            }`}>
-                            {claim.matchScore}% match
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3 flex-wrap">
-                          <div className="flex items-center gap-1.5">
-                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${claim.status === "approved" ? "bg-emerald-500" :
-                              claim.status === "rejected" ? "bg-red-500" : "bg-amber-400"
-                              }`} />
-                            <span className="text-[11.5px] text-black/38 capitalize font-medium">
-                              {claim.status}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleReject(claim._id)}
-                              className="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
-                                bg-white hover:bg-red-50 text-black/42 hover:text-red-600
-                                border border-black/8 hover:border-red-200
-                                transition-all duration-150 cursor-pointer">
-                              Reject
-                            </button>
-                            <button
-                              onClick={() => handleApprove(claim._id)}
-                              className="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold
-                                bg-emerald-600 hover:bg-emerald-700 text-white
-                                shadow-[0_2px_8px_rgba(5,150,105,0.22)]
-                                hover:shadow-[0_4px_14px_rgba(5,150,105,0.3)]
-                                hover:-translate-y-px
-                                transition-all duration-150 cursor-pointer border-none">
-                              Approve
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      <ChevronRight className={`w-3.5 h-3.5 ${color} opacity-40 group-hover:translate-x-0.5 transition-transform duration-150`} />
+                    </Link>
+                  ))}
+                </div>
               </div>
+              {/* ══ END QUICK ACTIONS ══ */}
 
             </div>
           </div>
