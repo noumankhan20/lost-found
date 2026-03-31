@@ -1,30 +1,39 @@
 "use client";
-import { Search, ShieldCheck, Bot, BarChart3, MapPin, ArrowRight, Users } from 'lucide-react';
-
+import {
+  Search,
+  ShieldCheck,
+  Bot,
+  Cpu,
+  BarChart3,
+  MapPin,
+  ArrowRight,
+  Users
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 const stats = [
-  { value: '50K+',  label: 'Active Users'   },
-  { value: '12K+',  label: 'Items Reunited' },
-  { value: '2.5d',  label: 'Avg Resolution' },
-  { value: '99.9%', label: 'Uptime'         },
+  { value: '50K+', label: 'Active Users' },
+  { value: '12K+', label: 'Items Reunited' },
+  { value: '2.5d', label: 'Avg Resolution' },
+  { value: '99.9%', label: 'Uptime' },
 ];
 
 const values = [
-  { icon: Search,      title: 'Accuracy First',   desc: 'Every report is stored in a structured, searchable database to maximise match precision across all submissions.'  },
-  { icon: ShieldCheck, title: 'Trust & Safety',   desc: 'Role-based verification and admin oversight ensure every claim is legitimate, documented, and fully auditable.'    },
-  { icon: Bot,         title: 'AI-Assisted 24/7', desc: 'Our chatbot guides users around the clock — submitting reports to surfacing the best potential matches.'           },
-  { icon: Users,       title: 'Community-Driven', desc: 'FindIT thrives on collective action — connecting finders with owners across campuses and public spaces.'           },
+  { icon: Search, title: 'Accuracy First', desc: 'Every report is stored in a structured, searchable database to maximise match precision across all submissions.' },
+  { icon: ShieldCheck, title: 'Trust & Safety', desc: 'Role-based verification and admin oversight ensure every claim is legitimate, documented, and fully auditable.' },
+  { icon: Bot, title: 'AI-Assisted 24/7', desc: 'Our chatbot guides users around the clock — submitting reports to surfacing the best potential matches.' },
+  { icon: Users, title: 'Community-Driven', desc: 'FindIT thrives on collective action — connecting finders with owners across campuses and public spaces.' },
 ];
 
 const team = [
-  { name: 'Aryan Mehta',  role: 'Full Stack Developer', initials: 'AM', color: '#dc2626', bg: 'rgba(220,38,38,0.07)', border: 'rgba(220,38,38,0.15)' },
-  { name: 'Priya Sharma', role: 'UI / UX Designer',     initials: 'PS', color: '#7c3aed', bg: 'rgba(124,58,237,0.07)', border: 'rgba(124,58,237,0.15)' },
-  { name: 'Rohan Desai',  role: 'Backend Engineer',     initials: 'RD', color: '#059669', bg: 'rgba(5,150,105,0.07)', border: 'rgba(5,150,105,0.15)' },
-  { name: 'Sneha Kapoor', role: 'AI & NLP Engineer',    initials: 'SK', color: '#d97706', bg: 'rgba(217,119,6,0.07)', border: 'rgba(217,119,6,0.15)' },
+  { name: 'Aryan Mehta', role: 'Full Stack Developer', initials: 'AM', color: '#dc2626', bg: 'rgba(220,38,38,0.07)', border: 'rgba(220,38,38,0.15)' },
+  { name: 'Priya Sharma', role: 'UI / UX Designer', initials: 'PS', color: '#7c3aed', bg: 'rgba(124,58,237,0.07)', border: 'rgba(124,58,237,0.15)' },
+  { name: 'Rohan Desai', role: 'Backend Engineer', initials: 'RD', color: '#059669', bg: 'rgba(5,150,105,0.07)', border: 'rgba(5,150,105,0.15)' },
+  { name: 'Sneha Kapoor', role: 'AI & NLP Engineer', initials: 'SK', color: '#d97706', bg: 'rgba(217,119,6,0.07)', border: 'rgba(217,119,6,0.15)' },
 ];
 
 const stack = ['MongoDB', 'Express.js', 'React.js', 'Node.js', 'Chatbot', 'JWT Auth', 'REST API', 'Tailwind CSS'];
-
 export default function AboutPage() {
+  const router = useRouter();
   return (
     <>
       <style>{`
@@ -34,6 +43,8 @@ export default function AboutPage() {
           font-family: 'DM Sans', sans-serif;
           background: #ffffff;
           color: #0f0f0f;
+           position: relative;   /* ← add this */
+  z-index: 0; 
         }
 
         /* ── Shared ── */
@@ -61,6 +72,7 @@ export default function AboutPage() {
           border-bottom: 1px solid rgba(0,0,0,0.06);
           position: relative;
           overflow: hidden;
+          z-index: 0;
         }
         .hero-section::before {
           content: '';
@@ -76,6 +88,7 @@ export default function AboutPage() {
           background-image: radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px);
           background-size: 40px 40px;
           pointer-events: none;
+          z-index: -1;
         }
         .about-inner {
           max-width: 1100px;
@@ -398,8 +411,10 @@ export default function AboutPage() {
 
         /* ── CTA ── */
         .cta-section {
-          padding: 80px 0;
-        }
+  padding: 80px 0;
+  z-index: 1;           /* ← was 0, change to 1 */
+  position: relative;   /* ← add this */
+}
         .cta-inner {
           display: flex;
           flex-direction: column;
@@ -505,10 +520,10 @@ export default function AboutPage() {
 
               <div className="feature-list">
                 {[
-                  { icon: MapPin,      text: 'Location-aware reporting with category, description & image upload'  },
-                  { icon: Bot,         text: 'Chatbot for 24/7 guided search and real-time assistance' },
-                  { icon: ShieldCheck, text: 'Admin dashboard for claim verification and user role management'      },
-                  { icon: BarChart3,   text: 'Live analytics and performance logs for complete system visibility'   },
+                  { icon: MapPin, text: 'Location-aware reporting with category, description & image upload' },
+                  { icon: Bot, text: 'Chatbot for 24/7 guided search and real-time assistance' },
+                  { icon: ShieldCheck, text: 'Admin dashboard for claim verification and user role management' },
+                  { icon: BarChart3, text: 'Live analytics and performance logs for complete system visibility' },
                 ].map(({ icon: Icon, text }, i) => (
                   <div className="feature-row" key={i}>
                     <div className="feature-icon">
@@ -545,7 +560,7 @@ export default function AboutPage() {
         </section>
 
         {/* ── TEAM ── */}
-        <section className="team-section">
+        {/* <section className="team-section">
           <div className="about-inner">
             <p className="about-eyebrow"><span className="eyebrow-line" />The Team</p>
             <h2 className="team-h2">Built by Students, for Everyone</h2>
@@ -567,7 +582,7 @@ export default function AboutPage() {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* ── STACK ── */}
         <section className="stack-section">
@@ -589,10 +604,10 @@ export default function AboutPage() {
                 <h2 className="cta-h2">Lost something? We can help.</h2>
                 <p className="cta-sub">Report your lost item in under 2 minutes and let FindIT do the rest.</p>
               </div>
-              <a href="/report-lost" className="cta-btn">
+              <button onClick={() => router.push('/report-lost')} className="cta-btn">
                 Report Lost Item
                 <ArrowRight size={14} className="cta-arrow" />
-              </a>
+              </button>
             </div>
           </div>
         </section>
