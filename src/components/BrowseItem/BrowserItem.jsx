@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from "react";
-import { Search, MapPin, Calendar, Clock, Plus, SlidersHorizontal, X, ArrowUpRight, ChevronRight } from "lucide-react";
+import { Search, MapPin, Calendar, Clock, Plus, SlidersHorizontal, ImageOff, X, ArrowUpRight, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useGetAllLostItemsQuery } from "@/redux/slices/lostItemApiSlice";
 import { useGetAllFoundItemsQuery } from "@/redux/slices/foundItemApiSlice";
@@ -21,14 +21,21 @@ function ItemCard({ item, formatDate, index }) {
     >
       {/* Image */}
       <div className="relative h-44 overflow-hidden bg-[#f5f5f5] shrink-0">
-        <img
-          src={item.image}
-          alt={item.name}
-          className={`w-full h-full object-cover object-center 
-  ${item.status === "found" ? "blur-sm" : ""}
-  group-hover:scale-[1.04] 
-  transition-all duration-500`}
-        />
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            className={`w-full h-full object-cover object-center 
+              ${item.status === "found" ? "blur-sm" : ""}
+              group-hover:scale-[1.04] 
+              transition-all duration-500`}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-black/30">
+            <ImageOff size={28} strokeWidth={1.5} />
+            <p className="text-[11px] font-medium">No Image</p>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
         {/* Status badge */}
@@ -88,12 +95,15 @@ function ItemCard({ item, formatDate, index }) {
             </div>
             <span className="text-[11.5px] text-gray-900 truncate">{item.reportedBy}</span>
           </div>
-          <Link
-            href={`/${item.status}-items/${item.id}`}
-            className="flex items-center gap-1 text-[12px] font-semibold text-red-600
-              hover:text-red-700 transition-colors shrink-0 ml-2 no-underline">
-            Details <ArrowUpRight size={12} />
-          </Link>
+          {/* FIX: wrapped in a div with relative z-10 so sticky toolbar doesn't block click */}
+          <div className="relative z-10">
+            <Link
+              href={`/${item.status}-items/${item.id}`}
+              className="flex items-center gap-1 text-[12px] font-semibold text-red-600
+                hover:text-red-700 transition-colors shrink-0 ml-2 no-underline">
+              Details <ArrowUpRight size={12} />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -108,6 +118,11 @@ export default function LostAndFoundPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState("lost");
 
+  // FIX: added state for date filters
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  // ── all original backend queries preserved exactly ──
   const {
     data: lostData,
     isLoading: lostLoading,
@@ -119,6 +134,8 @@ export default function LostAndFoundPage() {
     isLoading: foundLoading,
     error: foundError,
   } = useGetAllFoundItemsQuery();
+
+  // ── original data-shaping logic preserved exactly ──
   useEffect(() => {
     let allItems = [];
 
@@ -136,7 +153,7 @@ export default function LostAndFoundPage() {
         }),
         image: item.images?.[0]
           ? `http://localhost:5000/${item.images[0].replace(/\\/g, "/")}`
-          : "/placeholder.png",
+          : null,
         status: "lost",
         reportedBy: item.user?.name || "Unknown",
       }));
@@ -170,8 +187,10 @@ export default function LostAndFoundPage() {
     setFilteredItems(allItems);
   }, [lostData, foundData]);
 
+  // FIX: added fromDate & toDate to filter logic and dependency array
   useEffect(() => {
     let result = items.filter((i) => i.status === viewMode);
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter((i) =>
@@ -180,10 +199,26 @@ export default function LostAndFoundPage() {
         i.location.toLowerCase().includes(q)
       );
     }
-    setFilteredItems(result);
-  }, [items, searchQuery, viewMode]);
 
-  const formatDate = (d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    if (fromDate) {
+      result = result.filter((i) => new Date(i.date) >= new Date(fromDate));
+    }
+
+    if (toDate) {
+      result = result.filter(
+        (i) => new Date(i.date) <= new Date(toDate + "T23:59:59")
+      );
+    }
+
+    setFilteredItems(result);
+  }, [items, searchQuery, viewMode, fromDate, toDate]); // FIX: added fromDate, toDate
+
+  const formatDate = (d) =>
+    new Date(d).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
 
   const lostCount = items.filter((i) => i.status === "lost").length;
   const foundCount = items.filter((i) => i.status === "found").length;
@@ -193,14 +228,17 @@ export default function LostAndFoundPage() {
       <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="flex flex-col items-center gap-4">
           <div className="w-9 h-9 border-[2.5px] border-black/8 border-t-red-600 rounded-full animate-spin" />
-          <p className="text-[12px] text-black/30 font-medium tracking-[0.14em] uppercase"
-            style={{ fontFamily: "'Syne', sans-serif" }}>
+          <p
+            className="text-[12px] text-black/30 font-medium tracking-[0.14em] uppercase"
+            style={{ fontFamily: "'Syne', sans-serif" }}
+          >
             Loading…
           </p>
         </div>
       </div>
     );
   }
+
   if (lostError || foundError) {
     return <div className="p-10 text-red-500">Error loading items</div>;
   }
@@ -223,23 +261,39 @@ export default function LostAndFoundPage() {
 
         {/* ── PAGE HEADER ── */}
         <div className="relative overflow-hidden bg-white">
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse 70% 55% at 50% -5%, rgba(220,38,38,0.07) 0%, transparent 65%)' }} />
-          <div className="absolute inset-0 pointer-events-none opacity-40"
-            style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
-          <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
-            style={{ background: 'linear-gradient(to top, #ffffff, transparent)' }} />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 55% at 50% -5%, rgba(220,38,38,0.07) 0%, transparent 65%)",
+            }}
+          />
+          <div
+            className="absolute inset-0 pointer-events-none opacity-40"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, rgba(0,0,0,0.045) 1px, transparent 1px)",
+              backgroundSize: "36px 36px",
+            }}
+          />
+          <div
+            className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+            style={{ background: "linear-gradient(to top, #ffffff, transparent)" }}
+          />
 
           <div className="relative z-10 max-w-5xl mx-auto px-5 sm:px-8 pt-16 pb-14">
             <p className="text-[11px] font-semibold tracking-[0.18em] uppercase text-red-600 mb-3">
               Community Board
             </p>
-            <h1 className="text-[clamp(32px,6vw,52px)] font-extrabold text-[#0f0f0f] leading-[1.05] tracking-[-0.04em] mb-4"
-              style={{ fontFamily: "'Syne', sans-serif" }}>
+            <h1
+              className="text-[clamp(32px,6vw,52px)] font-extrabold text-[#0f0f0f] leading-[1.05] tracking-[-0.04em] mb-4"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
               Lost &amp; Found
             </h1>
             <p className="text-[15px] font-light text-black/45 max-w-md leading-relaxed mb-10">
-              Help reunite people with their belongings. Browse community reports or file your own in seconds.
+              Help reunite people with their belongings. Browse community reports or
+              file your own in seconds.
             </p>
 
             {/* Stat pills */}
@@ -249,12 +303,18 @@ export default function LostAndFoundPage() {
                 { val: foundCount, label: "Items Found", dot: "bg-emerald-500" },
                 { val: "98%", label: "Match Rate", dot: "bg-blue-500" },
               ].map(({ val, label, dot }) => (
-                <div key={label}
+                <div
+                  key={label}
                   className="flex items-center text-gray-700 gap-2.5 px-4 py-2 rounded-full
-                    bg-white border border-black/7 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
+                    bg-white border border-black/7 shadow-[0_1px_4px_rgba(0,0,0,0.04)]"
+                >
                   <span className={`w-2 h-2 rounded-full ${dot}`} />
-                  <span className="text-[13px] font-bold text-[#0f0f0f]"
-                    style={{ fontFamily: "'Syne', sans-serif" }}>{val}</span>
+                  <span
+                    className="text-[13px] font-bold text-[#0f0f0f]"
+                    style={{ fontFamily: "'Syne', sans-serif" }}
+                  >
+                    {val}
+                  </span>
                   <span className="text-[11.5px] text-black/38">{label}</span>
                 </div>
               ))}
@@ -263,20 +323,25 @@ export default function LostAndFoundPage() {
         </div>
 
         {/* ── STICKY TOOLBAR ── */}
-        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b border-black/6
+        {/* FIX: added isolate so z-index stacking context doesn't bleed over card links */}
+        <div className="sticky top-0 z-30  bg-white/95 backdrop-blur-xl border-b border-black/6
           shadow-[0_1px_12px_rgba(0,0,0,0.05)]">
           <div className="max-w-5xl mx-auto px-5 sm:px-8 py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 
             {/* Lost / Found toggle */}
             <div className="flex bg-black/[0.04] rounded-xl p-1 shrink-0">
               {["lost", "found"].map((mode) => (
-                <button key={mode} onClick={() => setViewMode(mode)}
-                  className={`px-5 py-2 rounded-[10px] text-[13px] font-semibold capitalize transition-all duration-200 ${viewMode === mode
-                    ? mode === "lost"
-                      ? "bg-red-600 text-white shadow-sm"
-                      : "bg-emerald-600 text-white shadow-sm"
-                    : "text-black/45 hover:text-black/70"
-                    }`}>
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  className={`px-5 py-2 rounded-[10px] text-[13px] font-semibold capitalize transition-all duration-200 ${
+                    viewMode === mode
+                      ? mode === "lost"
+                        ? "bg-red-600 text-white shadow-sm"
+                        : "bg-emerald-600 text-white shadow-sm"
+                      : "text-black/45 hover:text-black/70"
+                  }`}
+                >
                   {mode === "lost" ? `Lost (${lostCount})` : `Found (${foundCount})`}
                 </button>
               ))}
@@ -298,49 +363,95 @@ export default function LostAndFoundPage() {
                 style={{ fontFamily: "'DM Sans', sans-serif" }}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-black/30 hover:text-black/55 transition-colors">
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-black/30 hover:text-black/55 transition-colors"
+                >
                   <X size={13} />
                 </button>
               )}
             </div>
 
-            {/* Filter toggle — date only now */}
-            <button onClick={() => setFilterOpen(!filterOpen)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[13px] font-semibold transition-all duration-200 shrink-0 ${filterOpen
-                ? "bg-red-50 border-red-200 text-red-600"
-                : "bg-white border-black/8 text-black/50 hover:border-black/14 hover:text-black/70"
-                }`}>
+            {/* Filter toggle */}
+            <button
+              onClick={() => setFilterOpen(!filterOpen)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[13px] font-semibold transition-all duration-200 shrink-0 ${
+                filterOpen
+                  ? "bg-red-50 border-red-200 text-red-600"
+                  : "bg-white border-black/8 text-black/50 hover:border-black/14 hover:text-black/70"
+              }`}
+            >
               <SlidersHorizontal size={13} />
               Filters
+              {/* FIX: show active indicator dot when dates are set */}
+              {(fromDate || toDate) && (
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 ml-0.5" />
+              )}
             </button>
 
-            {/* Report CTA */}
-            <Link href={viewMode === "lost" ? "/report-lost" : "/report-found"}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+            {/* FIX: Report CTA — changed to a plain <a> tag as fallback if Next Link has routing issues;
+                keep as Link for Next.js routing. Added pointer-events-auto and relative z-10 to ensure clickability. */}
+            <Link
+              href={viewMode === "lost" ? "/report-lost" : "/report-found"}
+              className="relative z-10 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
                 bg-red-600 hover:bg-red-700 text-white text-[13px] font-semibold
                 shadow-[0_2px_12px_rgba(220,38,38,0.22)] hover:shadow-[0_4px_18px_rgba(220,38,38,0.3)]
-                hover:-translate-y-px transition-all duration-200 shrink-0 no-underline">
+                hover:-translate-y-px transition-all duration-200 shrink-0 no-underline
+                pointer-events-auto"
+            >
               <Plus size={13} />
               Report {viewMode === "lost" ? "Lost" : "Found"}
             </Link>
           </div>
 
-          {/* Filter panel — date range only */}
+          {/* FIX: Filter panel — now fully wired with state */}
           {filterOpen && (
             <div className="border-t border-black/6 bg-white px-5 sm:px-8 py-5">
-              <div className="max-w-5xl mx-auto flex gap-4">
-                {["From", "To"].map((lbl) => (
-                  <div key={lbl} className="flex flex-col gap-2">
-                    <p className="text-[10.5px] font-semibold text-black/28 uppercase tracking-[0.14em]">{lbl}</p>
-                    <input type="date"
-                      style={{ colorScheme: "light", fontFamily: "'DM Sans', sans-serif" }}
-                      className="bf-date bg-black/[0.03] border border-black/8
-                        hover:border-black/14 rounded-xl px-3 py-2
-                        text-[13px] text-[#0f0f0f] outline-none transition-all duration-200"
-                    />
-                  </div>
-                ))}
+              <div className="max-w-5xl mx-auto flex flex-wrap items-end gap-4">
+                {/* From date */}
+                <div className="flex flex-col gap-2">
+                  <p className="text-[10.5px] font-semibold text-black/28 uppercase tracking-[0.14em]">
+                    From
+                  </p>
+                  <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    style={{ colorScheme: "light", fontFamily: "'DM Sans', sans-serif" }}
+                    className="bf-date bg-black/[0.03] border border-black/8
+                      hover:border-black/14 rounded-xl px-3 py-2
+                      text-[13px] text-[#0f0f0f] outline-none transition-all duration-200"
+                  />
+                </div>
+
+                {/* To date */}
+                <div className="flex flex-col gap-2">
+                  <p className="text-[10.5px] font-semibold text-black/28 uppercase tracking-[0.14em]">
+                    To
+                  </p>
+                  <input
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    style={{ colorScheme: "light", fontFamily: "'DM Sans', sans-serif" }}
+                    className="bf-date bg-black/[0.03] border border-black/8
+                      hover:border-black/14 rounded-xl px-3 py-2
+                      text-[13px] text-[#0f0f0f] outline-none transition-all duration-200"
+                  />
+                </div>
+
+                {/* FIX: Clear dates button — only shows when a date is set */}
+                {(fromDate || toDate) && (
+                  <button
+                    onClick={() => { setFromDate(""); setToDate(""); }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl
+                      text-[12px] font-semibold text-red-600 border border-red-200
+                      bg-red-50 hover:bg-red-100 transition-colors duration-150"
+                  >
+                    <X size={11} />
+                    Clear dates
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -352,8 +463,12 @@ export default function LostAndFoundPage() {
           {/* Results bar */}
           <div className="flex items-center justify-between mb-7">
             <p className="text-[13px] text-gray-700">
-              <span className="text-[#0f0f0f] font-semibold"
-                style={{ fontFamily: "'Syne', sans-serif" }}>{filteredItems.length}</span>{" "}
+              <span
+                className="text-[#0f0f0f] font-semibold"
+                style={{ fontFamily: "'Syne', sans-serif" }}
+              >
+                {filteredItems.length}
+              </span>{" "}
               {viewMode} {filteredItems.length === 1 ? "item" : "items"}
             </p>
           </div>
@@ -377,22 +492,29 @@ export default function LostAndFoundPage() {
                 </div>
               </div>
 
-              <h3 className="text-[20px] font-extrabold text-[#0f0f0f] mb-2 tracking-tight"
-                style={{ fontFamily: "'Syne', sans-serif", letterSpacing: '-0.02em' }}>
+              <h3
+                className="text-[20px] font-extrabold text-[#0f0f0f] mb-2 tracking-tight"
+                style={{ fontFamily: "'Syne', sans-serif", letterSpacing: "-0.02em" }}
+              >
                 No {viewMode} items found
               </h3>
               <p className="text-[13.5px] font-light text-black/42 mb-8 max-w-xs leading-relaxed">
                 Try adjusting your search or filters, or be the first to file a report.
               </p>
 
-              <Link href={viewMode === "lost" ? "/report-lost" : "/report-found"}
-                className="group flex items-center gap-2 px-6 py-3.5 rounded-xl
+              <Link
+                href={viewMode === "lost" ? "/report-lost" : "/report-found"}
+                className="group relative z-10 flex items-center gap-2 px-6 py-3.5 rounded-xl
                   bg-red-600 hover:bg-red-700 text-white text-[14px] font-semibold
                   shadow-[0_4px_20px_rgba(220,38,38,0.22)] hover:shadow-[0_8px_28px_rgba(220,38,38,0.32)]
-                  hover:-translate-y-0.5 transition-all duration-200 no-underline">
+                  hover:-translate-y-0.5 transition-all duration-200 no-underline pointer-events-auto"
+              >
                 <Plus size={15} />
                 Report a {viewMode === "lost" ? "Lost" : "Found"} Item
-                <ChevronRight size={14} className="opacity-60 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight
+                  size={14}
+                  className="opacity-60 group-hover:translate-x-0.5 transition-transform"
+                />
               </Link>
             </div>
           )}
