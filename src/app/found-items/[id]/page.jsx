@@ -15,12 +15,17 @@ import { useCreateClaimMutation } from "@/redux/slices/claimApiSlice";
 function ClaimModal({ item, onClose }) {
   const [step, setStep] = useState(1); // 1 = form, 2 = success
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
   const [form, setForm] = useState({
     itemName: "",
     description: "",
     lastSeenLocation: "",
     lastSeenDate: "",
     additionalNote: "",
+    brand: "",
+    color: "",
+    uniqueMark: "",
+    exactLocation: "",
   });
   const [errors, setErrors] = useState({});
   const [createClaim] = useCreateClaimMutation();
@@ -32,6 +37,8 @@ function ClaimModal({ item, onClose }) {
     if (!form.description.trim()) e.description = "Description is required";
     if (!form.lastSeenLocation.trim()) e.lastSeenLocation = "Last seen location is required";
     if (!form.lastSeenDate) e.lastSeenDate = "Last seen date is required";
+    if (!form.brand.trim()) e.brand = "Brand is required";
+    if (!form.color.trim()) e.color = "Color is required";
     return e;
   };
 
@@ -50,15 +57,20 @@ function ClaimModal({ item, onClose }) {
     setIsSubmitting(true);
 
     try {
-      await createClaim({
+      const res = await createClaim({
         itemId: item._id,
         itemName: form.itemName,
         description: form.description,
         lastSeenLocation: form.lastSeenLocation,
         lastSeenDate: form.lastSeenDate,
         additionalNote: form.additionalNote,
+        brand: form.brand,
+        color: form.color,
+        uniqueMark: form.uniqueMark,
+        exactLocation: form.exactLocation,
       }).unwrap();
-
+      setAiResult(res.data);
+      // console.log("AI RESULT:", res.data);
       setStep(2); // success screen
     } catch (err) {
       console.error("Claim failed:", err);
@@ -187,7 +199,7 @@ function ClaimModal({ item, onClose }) {
                   <div>
                     <textarea
                       rows={3}
-                      placeholder="Describe your item — color, brand, distinguishing features…"
+                      placeholder="Describe general appearance..."
                       value={form.description}
                       onChange={(e) => handleChange("description", e.target.value)}
                       className={`${errors.description ? inputError : inputNormal} resize-none`}
@@ -233,6 +245,52 @@ function ClaimModal({ item, onClose }) {
                     className={`${inputNormal} resize-none`}
                     style={{ fontFamily: "'DM Sans', sans-serif" }}
                   />
+                </div>
+              </div>
+              {/* 🔒 Verification Section */}
+              <div className="mt-6">
+                <p className="text-[10.5px] font-semibold text-gray-700 uppercase tracking-[0.14em] mb-2.5">
+                  Verification Details 🔒
+                </p>
+
+                <p className="text-[11px] text-black/40 mb-3">
+                  These details are used to verify ownership and are not shown publicly.
+                </p>
+
+                <div className="space-y-3">
+
+                  <input
+                    type="text"
+                    placeholder="Brand (e.g. Rayban)"
+                    value={form.brand}
+                    onChange={(e) => handleChange("brand", e.target.value)}
+                    className={inputNormal}
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Color (e.g. Midnight Blue)"
+                    value={form.color}
+                    onChange={(e) => handleChange("color", e.target.value)}
+                    className={inputNormal}
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Any unique mark or scratch?"
+                    value={form.uniqueMark}
+                    onChange={(e) => handleChange("uniqueMark", e.target.value)}
+                    className={inputNormal}
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Exact location where you lost it"
+                    value={form.exactLocation}
+                    onChange={(e) => handleChange("exactLocation", e.target.value)}
+                    className={inputNormal}
+                  />
+
                 </div>
               </div>
             </div>
@@ -293,9 +351,39 @@ function ClaimModal({ item, onClose }) {
               >
                 Claim Submitted!
               </h3>
+
+              {aiResult && (
+                <div className="w-full p-4 rounded-2xl bg-white border border-black/7 mt-4 text-left">
+
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-500 mb-2">
+                    AI Verification Result
+                  </p>
+
+                  {/* Score */}
+                  <p className="text-[14px] font-bold text-[#0f0f0f]">
+                    Match Score: {aiResult.matchScore}%
+                  </p>
+
+                  {/* Status */}
+                  <p className={`text-[13px] font-semibold mt-1 ${aiResult.status === "matched"
+                    ? "text-emerald-600"
+                    : aiResult.status === "review"
+                      ? "text-yellow-600"
+                      : "text-red-500"
+                    }`}>
+                    Status: {aiResult?.status?.toUpperCase()}
+                  </p>
+
+                  {/* Reason */}
+                  <p className="text-[12.5px] text-black/50 mt-2 leading-relaxed">
+                    {aiResult.aiReason}
+                  </p>
+
+                </div>
+              )}
               <p className="text-[13.5px] font-light text-black/45 leading-relaxed max-w-xs">
                 Your claim request has been sent to the finder. They'll reach out to you at{" "}
-                <span className="font-semibold text-[#0f0f0f]">{form.claimerEmail}</span>.
+                <span className="font-semibold text-[#0f0f0f]">{user?.email}</span>.
               </p>
             </div>
 
@@ -509,7 +597,7 @@ export default function FoundItemDetailPage() {
                       key={activeImage}
                       src={images[activeImage]}
                       alt={item.itemName}
-                      className="w-full h-full object-cover fade-in-fast"
+                      className="w-full h-full object-cover blur-md"
                     />
                     <button
                       onClick={() => setLightboxOpen(true)}

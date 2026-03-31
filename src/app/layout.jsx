@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import './globals.css';
 import Navigation from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import Chatbot from "@/components/ChatBot/ChatBot";
 import ReduxProvider from "@/redux/provider"
 import { ThemeProvider } from 'next-themes';
 import AuthProvider from "./AuthProvider";
@@ -29,6 +30,7 @@ export default function RootLayout({ children }) {
             <AuthProvider>
               <Navigation />
               <main>{children}</main>
+              <Chatbot />
             </AuthProvider>
           </ReduxProvider>
           <Footer />

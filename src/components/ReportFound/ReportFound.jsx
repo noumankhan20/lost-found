@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import { Upload, MapPin, Calendar, Camera, CheckCircle2, X, Tag, FileText, ChevronRight, ArrowLeft, PackageCheck, User, AlertCircle } from 'lucide-react';
+import { Upload, MapPin, Calendar, Camera, CheckCircle2, X, Tag, FileText, ChevronRight, ArrowLeft, Lock, Eye, EyeOff, AlertCircle, Palette, Sparkles, Navigation } from 'lucide-react';
 import { useCreateFoundItemMutation } from '@/redux/slices/foundItemApiSlice'
 import Link from 'next/link';
 
@@ -12,10 +12,15 @@ export default function ReportFoundItem() {
     description: '',
     location: '',
     dateTime: '',
-    images: []
+    images: [],
+    brand: '',
+    color: '',
+    uniqueMark: '',
+    exactLocation: '',
   });
   const [dragActive, setDragActive] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showPrivateFields, setShowPrivateFields] = useState(true);
   const [createFoundItem, { isLoading }] = useCreateFoundItemMutation();
 
   const handleInputChange = (e) => {
@@ -56,11 +61,15 @@ export default function ReportFoundItem() {
       formDataToSend.append("description", formData.description);
       formDataToSend.append("location", formData.location);
       formDataToSend.append("dateTime", formData.dateTime);
+      formDataToSend.append("brand", formData.brand);
+      formDataToSend.append("color", formData.color);
+      formDataToSend.append("uniqueMark", formData.uniqueMark);
+      formDataToSend.append("exactLocation", formData.exactLocation);
       formData.images.forEach((img) => formDataToSend.append("images", img.file));
       const res = await createFoundItem(formDataToSend).unwrap();
       if (res.success) {
         setSubmitted(true);
-        setFormData({ itemName: '', description: '', dateTime: '', images: [] });
+        setFormData({ itemName: '', description: '', location: '', dateTime: '', images: [], brand: '', color: '', uniqueMark: '', exactLocation: '' });
       }
     } catch (error) {
       console.error("Submit Error:", error);
@@ -83,13 +92,11 @@ export default function ReportFoundItem() {
             style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
 
           <div className="relative z-10 w-full max-w-md text-center">
-            {/* Icon */}
             <div className="relative w-20 h-20 mx-auto mb-7">
               <div className="w-20 h-20 rounded-[22px] bg-emerald-50 border border-emerald-200
                 flex items-center justify-center">
                 <CheckCircle2 className="w-9 h-9 text-emerald-600" strokeWidth={1.5} />
               </div>
-              {/* Subtle ring */}
               <div className="absolute inset-0 rounded-[22px] border-2 border-emerald-300/40 scale-110 opacity-60" />
             </div>
 
@@ -161,10 +168,11 @@ export default function ReportFoundItem() {
         .rf-input[type="datetime-local"] { color: rgba(15,15,15,0.55); }
         .rf-input[type="datetime-local"]:focus { color: #0f0f0f; }
 
-        .rf-select {
+        /* Private field input — subtle amber/amber tint */
+        .rf-input-private {
           width: 100%;
-          background: #ffffff;
-          border: 1px solid rgba(0,0,0,0.1);
+          background: rgba(251,191,36,0.04);
+          border: 1px solid rgba(251,191,36,0.25);
           border-radius: 12px;
           padding: 11px 16px;
           font-family: 'DM Sans', sans-serif;
@@ -173,21 +181,16 @@ export default function ReportFoundItem() {
           color: #0f0f0f;
           outline: none;
           transition: border-color 0.2s, box-shadow 0.2s;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-          cursor: pointer;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
           -webkit-appearance: none;
           appearance: none;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(0,0,0,0.3)' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-          background-repeat: no-repeat;
-          background-position: right 14px center;
-          padding-right: 38px;
         }
-        .rf-select:hover { border-color: rgba(0,0,0,0.18); }
-        .rf-select:focus {
-          border-color: rgba(5,150,105,0.45);
-          box-shadow: 0 0 0 3px rgba(5,150,105,0.08), 0 1px 3px rgba(0,0,0,0.04);
+        .rf-input-private::placeholder { color: rgba(15,15,15,0.28); }
+        .rf-input-private:hover { border-color: rgba(251,191,36,0.4); }
+        .rf-input-private:focus {
+          border-color: rgba(245,158,11,0.5);
+          box-shadow: 0 0 0 3px rgba(245,158,11,0.08), 0 1px 3px rgba(0,0,0,0.03);
         }
-        .rf-select option { color: #0f0f0f; }
 
         .rf-textarea {
           width: 100%;
@@ -237,6 +240,19 @@ export default function ReportFoundItem() {
         }
         .rf-step svg { color: rgba(5,150,105,0.7); }
 
+        .rf-step-private {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 10.5px;
+          font-weight: 600;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: rgba(180,130,0,0.7);
+          margin-bottom: 8px;
+        }
+        .rf-step-private svg { color: rgba(245,158,11,0.8); }
+
         .rf-preview { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1; border: 1px solid rgba(0,0,0,0.08); }
         .rf-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .rf-preview-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); opacity: 0; transition: opacity 0.15s; }
@@ -250,7 +266,14 @@ export default function ReportFoundItem() {
         }
         .rf-preview:hover .rf-remove-btn { opacity: 1; }
 
-        /* Mobile tap — show remove on touch devices */
+        /* private section collapse animation */
+        .rf-private-body {
+          overflow: hidden;
+          transition: max-height 0.3s ease, opacity 0.25s ease;
+        }
+        .rf-private-body.open { max-height: 800px; opacity: 1; }
+        .rf-private-body.closed { max-height: 0; opacity: 0; }
+
         @media (hover: none) {
           .rf-remove-btn { opacity: 1; }
         }
@@ -258,7 +281,6 @@ export default function ReportFoundItem() {
 
       <div className="rf-root min-h-screen bg-white relative overflow-hidden">
 
-        {/* Background — emerald tint instead of red */}
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse 70% 40% at 50% -5%, rgba(5,150,105,0.05) 0%, transparent 65%)' }} />
         <div className="absolute inset-0 pointer-events-none opacity-50"
@@ -309,7 +331,7 @@ export default function ReportFoundItem() {
             ))}
           </div>
 
-          {/* Alert banner — good samaritan nudge */}
+          {/* Alert banner */}
           <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl
             bg-emerald-50 border border-emerald-200/80 mb-6">
             <AlertCircle className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
@@ -360,7 +382,7 @@ export default function ReportFoundItem() {
                 />
               </div>
 
-              {/* ── Location ── */}
+              {/* ── Location (public) ── */}
               <div>
                 <label className="rf-step">
                   <MapPin size={11} strokeWidth={2.5} />
@@ -431,7 +453,6 @@ export default function ReportFoundItem() {
                   </div>
                 )}
 
-                {/* Image previews */}
                 {formData.images.length > 0 && (
                   <div className={`grid gap-3 ${formData.images.length < 3 ? 'mt-3' : ''} grid-cols-3`}>
                     {formData.images.map((img, i) => (
@@ -450,6 +471,133 @@ export default function ReportFoundItem() {
                 )}
               </div>
 
+              {/* ══════════════════════════════════════════════ */}
+              {/* 🔒  PRIVATE / VERIFICATION DETAILS SECTION    */}
+              {/* ══════════════════════════════════════════════ */}
+
+              {/* Section toggle header */}
+              <div
+                className="flex items-center justify-between cursor-pointer select-none
+                  px-4 py-3 rounded-xl border border-amber-200/70 bg-amber-50/60
+                  hover:bg-amber-50 transition-colors duration-200"
+                onClick={() => setShowPrivateFields(v => !v)}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-amber-100 border border-amber-200
+                    flex items-center justify-center shrink-0">
+                    <Lock size={13} className="text-amber-600" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-amber-900">Private Verification Details</p>
+                    <p className="text-[11px] text-amber-700/70 font-light">Hidden from public · used to verify the real owner</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[11px] font-medium text-amber-600 hidden sm:block">
+                    {showPrivateFields ? 'Collapse' : 'Expand'}
+                  </span>
+                  {showPrivateFields
+                    ? <EyeOff size={14} className="text-amber-500" />
+                    : <Eye size={14} className="text-amber-500" />
+                  }
+                </div>
+              </div>
+
+              {/* Collapsible private fields */}
+              <div className={`rf-private-body ${showPrivateFields ? 'open' : 'closed'}`}>
+                <div className="space-y-5 pt-1">
+
+                  {/* Info callout */}
+                  <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl
+                    bg-amber-50 border border-amber-200/60">
+                    <Lock size={12} className="text-amber-500 mt-0.5 shrink-0" />
+                    <p className="text-[11.5px] text-amber-800 leading-relaxed">
+                      These fields are <strong>never shown publicly</strong>. Only you and our moderators can see them.
+                      Use them to confirm the real owner when they reach out — ask them to describe these details themselves.
+                    </p>
+                  </div>
+
+                  {/* Brand + Color — 2-col */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    {/* Brand */}
+                    <div>
+                      <label className="rf-step-private">
+                        <Tag size={11} strokeWidth={2.5} />
+                        Brand
+                        <span className="ml-auto font-normal tracking-normal normal-case text-[10.5px] text-amber-500/60">
+                          🔒 Private
+                        </span>
+                      </label>
+                      <input
+                        type="text" name="brand"
+                        value={formData.brand} onChange={handleInputChange}
+                        placeholder="e.g. Apple, Nike, Samsonite"
+                        className="rf-input-private"
+                      />
+                    </div>
+
+                    {/* Color */}
+                    <div>
+                      <label className="rf-step-private">
+                        <Palette size={11} strokeWidth={2.5} />
+                        Color
+                        <span className="ml-auto font-normal tracking-normal normal-case text-[10.5px] text-amber-500/60">
+                          🔒 Private
+                        </span>
+                      </label>
+                      <input
+                        type="text" name="color"
+                        value={formData.color} onChange={handleInputChange}
+                        placeholder="e.g. Midnight Black, Rose Gold"
+                        className="rf-input-private"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Unique Mark */}
+                  <div>
+                    <label className="rf-step-private">
+                      <Sparkles size={11} strokeWidth={2.5} />
+                      Unique Mark or Identifier
+                      <span className="ml-auto font-normal tracking-normal normal-case text-[10.5px] text-amber-500/60">
+                        🔒 Private
+                      </span>
+                    </label>
+                    <input
+                      type="text" name="uniqueMark"
+                      value={formData.uniqueMark} onChange={handleInputChange}
+                      placeholder="e.g. scratch on back, 'J.K.' engraved, blue sticker on corner…"
+                      className="rf-input-private"
+                    />
+                    <p className="text-[11px] text-black/30 mt-1.5 ml-1">
+                      Any distinctive mark the real owner should be able to describe without prompting.
+                    </p>
+                  </div>
+
+                  {/* Exact Location */}
+                  <div>
+                    <label className="rf-step-private">
+                      <Navigation size={11} strokeWidth={2.5} />
+                      Exact Location Found
+                      <span className="ml-auto font-normal tracking-normal normal-case text-[10.5px] text-amber-500/60">
+                        🔒 Private
+                      </span>
+                    </label>
+                    <input
+                      type="text" name="exactLocation"
+                      value={formData.exactLocation} onChange={handleInputChange}
+                      placeholder="e.g. Under bench #4, left of the main entrance, row 12 seat C…"
+                      className="rf-input-private"
+                    />
+                    <p className="text-[11px] text-black/30 mt-1.5 ml-1">
+                      More precise than the public location — helps confirm where the owner last had it.
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
               {/* ── Privacy note + Submit ── */}
               <div className="border-t border-black/6 pt-5">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -462,7 +610,7 @@ export default function ReportFoundItem() {
                     </span>
                   </div>
 
-                  {/* Submit button — emerald */}
+                  {/* Submit button */}
                   <button
                     type="submit"
                     disabled={isLoading}

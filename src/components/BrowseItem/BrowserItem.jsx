@@ -24,7 +24,10 @@ function ItemCard({ item, formatDate, index }) {
         <img
           src={item.image}
           alt={item.name}
-          className="w-full h-full object-cover object-center group-hover:scale-[1.04] transition-transform duration-500"
+          className={`w-full h-full object-cover object-center 
+  ${item.status === "found" ? "blur-sm" : ""}
+  group-hover:scale-[1.04] 
+  transition-all duration-500`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
@@ -198,7 +201,7 @@ export default function LostAndFoundPage() {
       </div>
     );
   }
-  if (lostError || foundError){
+  if (lostError || foundError) {
     return <div className="p-10 text-red-500">Error loading items</div>;
   }
 
