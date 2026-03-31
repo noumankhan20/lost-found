@@ -120,17 +120,26 @@ export default function Chatbot() {
         }
       `}</style>
 
-      <div className="cb-font fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3">
+      {/*
+        ── KEY FIX ──
+        The outer wrapper only sizes to fit its children (inline-flex).
+        pointer-events-none is removed from here entirely — each child
+        controls its own interactivity, so nothing bleeds over the navbar.
+      */}
+      <div className="cb-font fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
 
         {/* ── Chat panel ── */}
         <div
-          className={`w-[340px] bg-white rounded-[20px] border border-black/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.12),0_1px_4px_rgba(0,0,0,0.06)] flex flex-col origin-bottom-right transition-all duration-200
-            ${open ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" : "opacity-0 scale-95 translate-y-2 pointer-events-none"}
-            max-[400px]:w-[calc(100vw-32px)]`}
+          className={`w-80 bg-white rounded-[20px] border border-black/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.12),0_1px_4px_rgba(0,0,0,0.06)] flex flex-col origin-bottom-right transition-all duration-200
+            ${open
+              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 scale-95 translate-y-2 pointer-events-none select-none"
+            }`}
+          style={{ maxWidth: "calc(100vw - 32px)" }}
         >
 
           {/* Header */}
-          <div className="flex items-center justify-between px-[18px] py-4 bg-[#C0001A] shrink-0">
+          <div className="flex items-center justify-between px-[18px] py-4 bg-[#C0001A] rounded-t-[20px] shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-[34px] h-[34px] rounded-[10px] bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0">
                 <BotIcon />
@@ -153,7 +162,7 @@ export default function Chatbot() {
           </div>
 
           {/* Messages */}
-          <div className="overflow-y-auto h-[300px] min-h-[300px] max-h-[300px] p-4 flex flex-col gap-2.5 bg-[#fafafa] [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/10 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <div className="overflow-y-auto h-[300px] p-4 flex flex-col gap-2.5 bg-[#fafafa] [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/10 [&::-webkit-scrollbar-thumb]:rounded-full">
             {messages.map((msg, i) => (
               <div key={i} className={`flex gap-2 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}>
                 {msg.sender === "bot" && (
@@ -245,16 +254,17 @@ export default function Chatbot() {
           </div>
 
           {/* Footer */}
-          <div className="px-3.5 pb-2.5 pt-1.5 text-center bg-white">
+          <div className="px-3.5 pb-2.5 pt-1.5 text-center bg-white rounded-b-[20px]">
             <p className="text-[10.5px] text-black/[0.22] tracking-[0.04em]">
               Powered by <span className="text-[#C0001A] font-semibold">FindIt</span>
             </p>
           </div>
         </div>
 
-        {/* ── FAB ── */}
+        {/* ── FAB (Floating Action Button) ── */}
+        {/* pointer-events-auto ensures the FAB is always clickable */}
         <button
-          className="w-[52px] h-[52px] rounded-2xl bg-[#C0001A] border-none cursor-pointer flex items-center justify-center text-white shadow-[0_4px_20px_rgba(192,0,26,0.32),0_1px_4px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_28px_rgba(192,0,26,0.42),0_2px_6px_rgba(0,0,0,0.14)] hover:-translate-y-px active:translate-y-0 transition-all relative shrink-0"
+          className="pointer-events-auto w-[52px] h-[52px] rounded-2xl bg-[#C0001A] border-none cursor-pointer flex items-center justify-center text-white shadow-[0_4px_20px_rgba(192,0,26,0.32),0_1px_4px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_28px_rgba(192,0,26,0.42),0_2px_6px_rgba(0,0,0,0.14)] hover:-translate-y-px active:translate-y-0 transition-all relative shrink-0"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close chat" : "Open chat"}
         >
