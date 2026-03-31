@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   MapPin, Mail, Phone, Calendar, Edit3, Check, X, CheckCircle2,
   ArrowUpRight, LogOut, Shield, Bell, ChevronRight,
-  Package, Search, Star, Clock, Loader2, AlertCircle, FileText,ImageOff,
+  Package, Search, Star, Clock, Loader2, AlertCircle, FileText, ImageOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import {
   useGetMeQuery,
   useGetMyItemsQuery,
   useLogoutMutation,
+  useUpdateProfileMutation,
 } from "@/redux/slices/authApiSlice";
 import { useGetMyClaimsQuery, useApproveClaimMutation, useRejectClaimMutation, useGetClaimsMadeQuery } from "@/redux/slices/claimApiSlice";
 import { useDispatch } from "react-redux";
@@ -41,7 +42,14 @@ function EditableField({ label, value, onChange, type = "text", icon: Icon }) {
 
   useEffect(() => { setDraft(value); }, [value]);
 
-  const commit = () => { onChange(draft); setEditing(false); };
+  const commit = async () => {
+    try {
+      await onChange(draft); // now async
+      setEditing(false);
+    } catch (err) {
+      console.error("Update failed", err);
+    }
+  };
   const cancel = () => { setDraft(value); setEditing(false); };
 
   useEffect(() => {
@@ -170,7 +178,8 @@ function MyClaimItem({ claim, formatDate, index }) {
     pending: { dot: "bg-amber-400", badge: "bg-amber-50 border-amber-100 text-amber-700", label: "Pending" },
   };
   const s = statusConfig[claim.status] || statusConfig.pending;
-
+  const phone = claim.owner.phone.replace(/\D/g, "");
+  const whatsappNumber = phone.startsWith("91") ? phone : `91${phone}`;
   return (
     <div
       className="claim-row"
@@ -185,9 +194,50 @@ function MyClaimItem({ claim, formatDate, index }) {
           <p className="text-[12px] text-black/40 mt-0.5">
             Found by{" "}
             <span className="font-semibold text-black/65">
-              {claim.item?.reportedBy?.name || claim.owner?.name || "Unknown"}
+              {claim.owner?.name || "Unknown"}
             </span>
           </p>
+
+          {/* ✅ SHOW CONTACT ONLY IF APPROVED */}
+          {claim.status === "approved" && (
+            <div className="mt-3 p-2.5 rounded-lg bg-emerald-50 border border-emerald-100 space-y-2">
+
+              {/* 📞 PHONE */}
+              {claim.owner?.phone && (
+                <a
+                  href={`tel:${claim.owner.phone}`}
+                  className="flex items-center gap-2 text-[11.5px] font-medium text-emerald-700 hover:underline"
+                >
+                  <Phone size={12} />
+                  Call: {claim.owner.phone}
+                </a>
+              )}
+
+              {/* 📧 EMAIL */}
+              {claim.owner?.email && (
+                <a
+                  href={`mailto:${claim.owner.email}`}
+                  className="flex items-center gap-2 text-[11.5px] font-medium text-emerald-700 hover:underline"
+                >
+                  <Mail size={12} />
+                  Email: {claim.owner.email}
+                </a>
+              )}
+
+              {/* 💬 WHATSAPP */}
+              {claim.owner?.phone && (
+                <a
+                  href={`https://wa.me/${whatsappNumber}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-[11.5px] font-medium text-emerald-700 hover:underline"
+                >
+                  💬 Chat on WhatsApp
+                </a>
+              )}
+
+            </div>
+          )}
         </div>
         <span className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-bold border ${s.badge}`}>
           {s.label}
@@ -298,7 +348,7 @@ export default function ProfilePage() {
   const [approveClaim] = useApproveClaimMutation();
   const [rejectClaim] = useRejectClaimMutation();
   const [logout, { isLoading: loggingOut }] = useLogoutMutation();
-
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation();
   useEffect(() => {
     if (!meLoading && meError) router.replace("/login");
   }, [meLoading, meError, router]);
@@ -325,7 +375,16 @@ export default function ProfilePage() {
     }
   }, [meData]);
 
-  const updateField = (key) => (val) => setProfile((p) => ({ ...p, [key]: val }));
+  const updateField = (key) => async (val) => {
+    try {
+      await updateProfile({ [key]: val }).unwrap();
+
+      setProfile((p) => ({ ...p, [key]: val }));
+
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
+  };
 
   const [avatarHover, setAvatarHover] = useState(false);
   const [avatarSrc, setAvatarSrc] = useState(null);

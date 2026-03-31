@@ -47,6 +47,15 @@ export const authApi = apiSlice.injectEndpoints({
       providesTags: ["MyItems"],
     }),
 
+    updateProfile: builder.mutation({
+      query: (data) => ({
+        url: "/user/update-profile", // your route
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["User"], // 🔥 refresh getMe automatically
+    }),
+
   }),
 });
 
@@ -56,4 +65,5 @@ export const {
   useLogoutMutation,
   useGetMeQuery,
   useGetMyItemsQuery,
+  useUpdateProfileMutation,
 } = authApi;
