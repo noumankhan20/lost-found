@@ -126,7 +126,10 @@ export default function Chatbot() {
         pointer-events-none is removed from here entirely — each child
         controls its own interactivity, so nothing bleeds over the navbar.
       */}
-      <div className="cb-font fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      <div
+        className={`fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3
+  ${open ? "pointer-events-auto" : "pointer-events-none"}`}
+      >
 
         {/* ── Chat panel ── */}
         <div

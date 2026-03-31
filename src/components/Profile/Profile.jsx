@@ -625,7 +625,7 @@ export default function ProfilePage() {
         }
       `}</style>
 
-      <div className="pf-root min-h-screen bg-[#f8f8f8]">
+      <div className="pf-root min-h-screen bg-[#f8f8f8] pb-28">
 
         {/* ══════════ HERO BANNER ══════════ */}
         <div className="relative h-44 sm:h-52 overflow-hidden bg-white">

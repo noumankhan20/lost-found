@@ -377,7 +377,7 @@ export default function ReportFoundItem() {
                   name="description" required rows={4}
                   value={formData.description} onChange={handleInputChange}
                   maxLength={500}
-                  placeholder="Color, size, brand, distinguishing marks — be specific but avoid any secret details the owner should verify..."
+                  placeholder="Give a small description about it — be specific but avoid mentioning color,brand and all keep them in secret details the owner should verify..."
                   className="rf-textarea"
                 />
               </div>
