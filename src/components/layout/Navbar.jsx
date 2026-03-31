@@ -207,16 +207,6 @@ export default function Navigation() {
             <Link href="/about-us" className="nav-link">About</Link>
             <Link href="/browse-items" className="nav-link">Browse</Link>
 
-            {mounted && (
-              <button
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="theme-toggle"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-              </button>
-            )}
-
             {isLoading ? null : user ? (
               <Link href="/profile" className="nav-cta">Profile</Link>
             ) : (
