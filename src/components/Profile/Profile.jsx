@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   MapPin, Mail, Phone, Calendar, Edit3, Check, X, CheckCircle2,
   ArrowUpRight, LogOut, Shield, Bell, ChevronRight,
-  Package, Search, Star, Clock, Loader2, AlertCircle, FileText,
+  Package, Search, Star, Clock, Loader2, AlertCircle, FileText,ImageOff,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -100,18 +100,14 @@ function EditableField({ label, value, onChange, type = "text", icon: Icon }) {
 // ── Activity item ─────────────────────────────────────────────────────────────
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
-function resolveImage(raw) {
-  const fallback = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop";
-  if (!raw) return fallback;
-  if (/^(https?:\/\/|data:)/.test(raw)) return raw;
-  return `${BACKEND}${raw.startsWith("/") ? "" : "/"}${raw}`;
-}
-
 function ActivityItem({ item, formatDate, index }) {
   const isLost = item.status === "lost";
   const rawImage = item.images?.[0] || item.image || null;
-  const imageSrc = resolveImage(rawImage);
-
+  const imageSrc = rawImage
+    ? /^(https?:\/\/|data:)/.test(rawImage)
+      ? rawImage
+      : `${BACKEND}${rawImage.startsWith("/") ? "" : "/"}${rawImage}`
+    : null;
   return (
     <div
       className="group flex items-center gap-4 p-4 rounded-2xl
@@ -119,14 +115,19 @@ function ActivityItem({ item, formatDate, index }) {
       style={{ animationDelay: `${300 + index * 70}ms`, animation: "fadeSlideUp 0.4s ease both" }}
     >
       <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-black/5">
-        <img
-          src={imageSrc}
-          alt={item.name || item.itemName}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          onError={(e) => {
-            e.target.src = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop";
-          }}
-        />
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={item.name || item.itemName}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            onError={(e) => (e.target.style.display = "none")}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-black/30">
+            <ImageOff size={16} strokeWidth={1.5} />
+            <p className="text-[10px] font-medium">No Image</p>
+          </div>
+        )}
         <div className={`absolute top-1 left-1 w-2 h-2 rounded-full border border-white
           ${isLost ? "bg-red-500" : "bg-emerald-500"}`} />
       </div>
@@ -589,16 +590,6 @@ export default function ProfilePage() {
             </Link>
 
             <div className="flex items-center gap-2">
-              <button className="w-8 h-8 rounded-xl bg-white/80 border border-black/8
-                flex items-center justify-center text-black/35 hover:text-red-500
-                hover:border-red-200 transition-all duration-200 backdrop-blur-sm">
-                <Bell className="w-3.5 h-3.5" />
-              </button>
-              <button className="hidden sm:flex w-8 h-8 rounded-xl bg-white/80 border border-black/8
-                items-center justify-center text-black/35 hover:text-red-500
-                hover:border-red-200 transition-all duration-200 backdrop-blur-sm">
-                <Shield className="w-3.5 h-3.5" />
-              </button>
               <button
                 onClick={handleLogout}
                 disabled={loggingOut}
