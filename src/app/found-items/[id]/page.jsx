@@ -599,14 +599,6 @@ export default function FoundItemDetailPage() {
                       alt={item.itemName}
                       className="w-full h-full object-cover blur-md"
                     />
-                    <button
-                      onClick={() => setLightboxOpen(true)}
-                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md
-                        flex items-center justify-center text-white opacity-0 group-hover:opacity-100
-                        transition-opacity hover:bg-black/60"
-                    >
-                      <ZoomIn size={14} />
-                    </button>
                     {images.length > 1 && (
                       <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-md
                         text-white text-[11px] font-semibold px-2.5 py-1 rounded-full">

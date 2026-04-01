@@ -139,8 +139,6 @@ export default function Footer() {
             <div>
               <p className="footer-col-title">Support</p>
               <ul className="footer-links">
-                <li><a href="#" className="footer-link">Help Center <ArrowUpRight size={12} /></a></li>
-                <li><a href="#" className="footer-link">Report Issue <ArrowUpRight size={12} /></a></li>
                 <li><Link href="/sign-up" className="footer-link">Sign Up <ArrowUpRight size={12} /></Link></li>
               </ul>
             </div>
