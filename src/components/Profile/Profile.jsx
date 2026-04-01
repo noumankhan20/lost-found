@@ -6,6 +6,7 @@ import {
   Package, Search, Star, Clock, Loader2, AlertCircle, FileText, ImageOff,
 } from "lucide-react";
 import Link from "next/link";
+import ClaimDetailsModal from "./ClaimDetailsModal"
 import { useRouter } from "next/navigation";
 import {
   useGetMeQuery,
@@ -320,7 +321,7 @@ export default function ProfilePage() {
   const dispatch = useDispatch();
   // ── Tab state for the top right card ──
   const [activeTab, setActiveTab] = useState("reports"); // "reports" | "claims"
-
+  const [selectedClaim, setSelectedClaim] = useState(null);
   const {
     data: meData,
     isLoading: meLoading,
@@ -884,6 +885,14 @@ export default function ProfilePage() {
                                 transition-all duration-150 cursor-pointer border-none">
                               Approve
                             </button>
+                            <button
+                              onClick={() => setSelectedClaim(claim)}
+                              className="px-3 py-1.5 rounded-lg text-[11.5px] font-semibold
+    bg-white/5 hover:bg-indigo-50 text-gray-700 hover:text-indigo-600
+    border border-white/8 hover:border-indigo-200
+    transition-all duration-150 cursor-pointer">
+                              View Details
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1142,6 +1151,12 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      {selectedClaim && (
+        <ClaimDetailsModal
+          claim={selectedClaim}
+          onClose={() => setSelectedClaim(null)}
+        />
+      )}
     </>
   );
 }

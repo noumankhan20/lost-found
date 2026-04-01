@@ -39,6 +39,8 @@ function ClaimModal({ item, onClose }) {
     if (!form.lastSeenDate) e.lastSeenDate = "Last seen date is required";
     if (!form.brand.trim()) e.brand = "Brand is required";
     if (!form.color.trim()) e.color = "Color is required";
+    if (!form.uniqueMark.trim()) e.uniqueMark = "Unique mark is required";
+    if (!form.exactLocation.trim()) e.exactLocation = "Exact location is required";
     return e;
   };
 
